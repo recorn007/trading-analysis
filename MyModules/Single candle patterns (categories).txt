@@ -1,0 +1,10 @@
+0: "No category"
+1: "Hammer (body near high)"          - lower tail > 2
+2: "Inverted hammer (body near low)"  - upper tail > 2
+3: "Spinning top",                    - both tails > 1
+4: "Doji with close near high",
+5: "Doji with close near low",
+6: "Doji with close near middle",
+7: "Marubozu"                         - both tails < 0.1
+8: "Hanging man"
+9: "Shooting star"

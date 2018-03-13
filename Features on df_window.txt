@@ -1,0 +1,57 @@
+  # For rejection features, a returned value of 1 is from below, while 2 is from above
+  # These are features 16, 17, 18, 19, 20, 21, 25, 26, 31, 32, 33
+
+0  | Open
+1  | High
+2  | Low
+3  | Close
+4  | Volume
+
+# FEATURE ENGINEERINGS:
+
+5  | Candle Pattern
+6  | Same-sized Candle Trend Rejection
+7  | Engulfing Pattern
+8  | Immediate Trend Direction
+9  | Rejection
+
+# IMMEDIATE TREND VALUE AREAS:
+
+10 | Near Short-term Control
+11 | Near Long-term Control
+
+12 | In Excess Above Short-term Value
+13 | In Excess Below Short-term Value
+14 | In Excess Above Long-term Value
+15 | In Excess Below Long-term Value
+
+16 | Rejected Short-term Control
+17 | Rejected Long-term Control
+18 | Rejected Short-term Upper Limit
+19 | Rejected Short-term Lower Limit
+20 | Rejected Long-term Upper Limit
+21 | Rejected Long-term Lower Limit
+
+22 | Near Short-term SR
+23 | Near Long-term SR
+24 | Near Sloped SR
+25 | Rejected Short-term SR line
+26 | Rejected Long-term SR line
+27 | Rejected Sloped SR line
+
+# FOR LONG-TERM TREND-FOLLOWING & COUNTER-TREND OPPORTUNITIES/CHECKS:
+
+28 | Long-term Trend Direction
+29 | In Excess of Long-term Value Area, Trend-following
+30 | In Excess of Long-term Value Area, Counter-trend
+
+# Extras
+
+31 | Rejected Fibo level 236
+32 | Rejected Fibo level 382
+33 | Rejected Fibo level 618
+
+# Not yet added...
+
+## | Long-term Trend About to End
+## | Long-term Sideways Consolidation About to End

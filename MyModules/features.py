@@ -423,5 +423,8 @@ def new_datetime(df_longterm, df_window, new_point, pip_closeness_tol=0.0008):
         df_window.iloc[-1, 33] = 2  # rejected Fibo level 618 from above
     else:
         df_window.iloc[-1, 33] = 0
+### Close above / below (fundamental)
+    df_window.iloc[-1, 34] = 1 if df_window.iloc[-1, 3] > df_window.iloc[-2, 3] else 0
+    df_window.iloc[-1, 35] = 1 if df_window.iloc[-1, 3] < df_window.iloc[-2, 3] else 0
     
     return df_longterm, df_window, shortterm_SR, longterm_SR, shortterm_trend, st_lower, st_upper, longterm_trend, lt_lower, lt_upper, sloped_sr_lines, sloped_sr_lines_starts

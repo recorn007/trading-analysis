@@ -51,6 +51,11 @@
 32 | Rejected Fibo level 382
 33 | Rejected Fibo level 618
 
+# Close above / below (fundamental)
+
+34 | Closed above previous (green)
+35 | Close below previous (red)
+
 # Not yet added...
 
 ## | Long-term Trend About to End

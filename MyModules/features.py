@@ -8,13 +8,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.finance as finplt
 import matplotlib.pyplot as plt
-import datetime as dt
 
 from sklearn.cluster import MeanShift, estimate_bandwidth
 from sklearn.linear_model import LinearRegression
 
 from PIL import Image
-from matplotlib.patches import Rectangle
 from keras.models import load_model
 
 model = load_model('./MyModules/An eye for an eye - a CNN model.h5')

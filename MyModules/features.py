@@ -8,10 +8,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.finance as finplt
 import matplotlib.pyplot as plt
-
 from sklearn.cluster import MeanShift, estimate_bandwidth
 from sklearn.linear_model import LinearRegression
-
 from PIL import Image
 from keras.models import load_model
 

@@ -175,9 +175,14 @@ def new_datetime(df_longterm, df_window, new_point, pip_closeness_tol=0.0008):
     df_window.iloc[-1, 6] = same_sized_candle_trend_rejection(df_window.iloc[len(df_window)-2:len(df_window), :4], df_window.iloc[-1, 8])
     df_window.iloc[-1, 7] = engulfing_check(df_window.iloc[len(df_window)-2:len(df_window), 1:3])                # Engulfing pattern
     df_window.iloc[-1, 9] = rejection_price(df_window.iloc[-1, :7])                                              # Rejection
+
+    #return xxxxxx
+
+#def():
 ### Remove previous rows for engineered features, except for 'Rejection' needed for Sloped S+Rs
-    df_window.iloc[:-1, 5:9] = np.array(np.nan)
-    df_window.iloc[:-1, 10:] = np.array(np.nan)
+	# Is this section still needed? Or redudant, if saving csv with only Rejection anyway
+    #df_window.iloc[:-1, 5:9] = np.array(np.nan)
+    #df_window.iloc[:-1, 10:] = np.array(np.nan)
 ### Regular + sloped SR lines and trends
     # Calculate the support+resistance lines
     longterm_SR = support_resistance(df_longterm.iloc[:, :4], quant=0.2, bin_seed=True, pip_tol=0.0020)

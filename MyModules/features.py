@@ -163,7 +163,7 @@ def fibo_levels(max_price, min_price):
 
     return fib_level1, fib_level2, fib_level3
 
-def new_datetime(df_longterm, df_window, new_point, pip_closeness_tol=0.0008):
+def new_datetime_alpha(df_longterm, df_window, new_point):
     df_window = df_window.append(new_point)         # When defining df_window, included all points up max_w. Here, max_w is now included
     df_window = df_window.drop(df_window.index[0])  # Drop first record in df_window, to keep it the same size
     df_longterm = df_longterm.append(new_point)       # Same for df_longterm
@@ -176,11 +176,13 @@ def new_datetime(df_longterm, df_window, new_point, pip_closeness_tol=0.0008):
     df_window.iloc[-1, 7] = engulfing_check(df_window.iloc[len(df_window)-2:len(df_window), 1:3])                # Engulfing pattern
     df_window.iloc[-1, 9] = rejection_price(df_window.iloc[-1, :7])                                              # Rejection
 
-    #return xxxxxx
+    return df_longterm, df_window
 
-#def():
+def new_datetime_complete(df_longterm, df_window, new_point, pip_closeness_tol=0.0008):
+### Return first part of new_datetime
+    df_longterm, df_window = new_datetime_alpha(df_longterm, df_window, new_point)
 ### Remove previous rows for engineered features, except for 'Rejection' needed for Sloped S+Rs
-	# Is this section still needed? Or redudant, if saving csv with only Rejection anyway
+ ## Is this section still needed? Or redudant, if saving csv with only Rejection anyway
     #df_window.iloc[:-1, 5:9] = np.array(np.nan)
     #df_window.iloc[:-1, 10:] = np.array(np.nan)
 ### Regular + sloped SR lines and trends
@@ -188,11 +190,12 @@ def new_datetime(df_longterm, df_window, new_point, pip_closeness_tol=0.0008):
     longterm_SR = support_resistance(df_longterm.iloc[:, :4], quant=0.2, bin_seed=True, pip_tol=0.0020)
     shortterm_SR = support_resistance(df_window.iloc[:, :4], quant=0.12, bin_seed=True, pip_tol=0.0015)
       ## delete short-term SR lines too close to long-term SR
-    to_del = np.array([], dtype=np.int64)
+    #to_del = np.array([], dtype=np.int64)
+    to_del = []
     for i, val in enumerate(shortterm_SR):
         for j in longterm_SR:
             if abs(val-j) <= 0.0005:
-                to_del = np.append(to_del, i)
+                to_del.append(i)
     if len(to_del) > 0:
         shortterm_SR = np.delete(shortterm_SR, to_del)
 

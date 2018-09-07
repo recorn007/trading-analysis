@@ -1,3 +1,6 @@
+# THIS IS FOR PLOTTING WITHIN JUPYTER NOTEBOOK
+# MAY NEED TO MODIFY IF PLOTTING OUTSIDE OF JUPYTER NOTEBOOK
+
 import numpy as np
 import matplotlib.finance as finplt
 import matplotlib.pyplot as plt
@@ -37,8 +40,8 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
         if sloped_sr_lines[i] != []:
             lm = LinearRegression(n_jobs=-1)
             lm.fit(np.arange(len(sloped_sr_lines[i])).reshape(-1, 1), sloped_sr_lines[i])
-            y = lm.predict(np.arange(len(df_window)-df_window.index.get_loc(sloped_sr_lines_starts[0])).reshape(-1, 1))
-            plt.plot(np.add(df_window.index.get_loc(sloped_sr_lines_starts[0]), range(len(df_window)-df_window.index.get_loc(sloped_sr_lines_starts[0]))),
+            y = lm.predict(np.arange(len(df_window)-df_window.index.get_loc(sloped_sr_lines_starts[i])).reshape(-1, 1))
+            plt.plot(np.add(df_window.index.get_loc(sloped_sr_lines_starts[i]), range(len(df_window)-df_window.index.get_loc(sloped_sr_lines_starts[i]))),
                      y, '--', color='purple', linewidth=3, alpha=0.7)
 # Format axes
     plt.ylim(min(df_window.Low), max(df_window.High))
@@ -55,12 +58,12 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
     
     plt.show()
     
-    print('   ' + str(df_window.index[-len_of_future_bars])[:13] + 'h')
-    if df_window.iloc[-len_of_future_bars, 5] != 0:
-        print(cat_map[df_window.iloc[-len_of_future_bars, 5]])
+    print('   ' + str(df_window.index[-len_of_future_bars+1])[:13] + 'h')
+    if df_window.iloc[-len_of_future_bars+1, 5] != 0:
+        print(cat_map[df_window.iloc[-len_of_future_bars+1, 5]])
     for i in range(6, 34):
-        if i not in (9, 28) and df_window.iloc[-len_of_future_bars, i] != 0:
+        if i not in (9, 28) and df_window.iloc[-len_of_future_bars+1, i] != 0:
             print(df_window.columns[i], end='')
-            if i == 8: print(':', 'Upwards' if df_window.iloc[-len_of_future_bars, i] == 1 else 'Downwards', end='')
-            if i in (16, 17, 18, 19, 20, 21, 25, 26, 31, 32, 33): print(' (from BELOW)' if df_window.iloc[-len_of_future_bars, i] == 1 else '(from ABOVE)')
+            if i == 8: print(':', 'Upwards' if df_window.iloc[-len_of_future_bars+1, i] == 1 else 'Downwards', end='')
+            if i in (16, 17, 18, 19, 20, 21, 25, 26, 31, 32, 33): print(' (from BELOW)' if df_window.iloc[-len_of_future_bars+1, i] == 1 else '(from ABOVE)')
             else: print('')

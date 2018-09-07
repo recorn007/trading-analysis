@@ -49,12 +49,12 @@ def immediate_trend(to_plot):
     return np.sign(immediate_trend[-1]-immediate_trend[0])
 
 def same_sized_candle_trend_rejection(candles, trend, size_tol=1.25):
-    if (1/size_tol) <= (abs(candles.Close.iloc[0] - candles.Open.iloc[0]) / abs(candles.Close.iloc[1] - candles.Open.iloc[1])) <= size_tol and \
-    np.sign(candles.Close.iloc[0] - candles.Open.iloc[0]) * np.sign(candles.Close.iloc[1] - candles.Open.iloc[1]) == -1 and \
-    trend * np.sign(candles.Close.iloc[1] - candles.Open.iloc[1]) == -1:
-        return 1
-    else:
-        return 0
+    if candles.Close.iloc[0] - candles.Open.iloc[0] != 0 and candles.Close.iloc[1] - candles.Open.iloc[1] != 0:
+        if (1/size_tol) <= (abs(candles.Close.iloc[0] - candles.Open.iloc[0]) / abs(candles.Close.iloc[1] - candles.Open.iloc[1])) <= size_tol and \
+           np.sign(candles.Close.iloc[0] - candles.Open.iloc[0]) * np.sign(candles.Close.iloc[1] - candles.Open.iloc[1]) == -1 and \
+           trend * np.sign(candles.Close.iloc[1] - candles.Open.iloc[1]) == -1:
+            return 1
+    return 0
     
 def engulfing_check(candles):
     if candles.iloc[1, 0] > candles.iloc[0, 0] and candles.iloc[1, 1] < candles.iloc[0, 1]:
@@ -146,7 +146,7 @@ def sloped_SRlines(df_window_index, rejections, slope, tol=0.00175):
     sloped_lines = np.array(sloped_lines[1:])
     
     # delete sloped SR lines too close to each other within a tolerance
-    for i in range(0, len(sloped_lines)):
+    for i in range(len(sloped_lines)):
         if sloped_lines[i] != []:
             for j in range(len(sloped_lines)-1, 0, -1):
                 if i != j and sloped_lines[j] != [] and \
@@ -165,9 +165,7 @@ def fibo_levels(max_price, min_price):
 
 def new_datetime_alpha(df_longterm, df_window, new_point):
     df_window = df_window.append(new_point)         # When defining df_window, included all points up max_w. Here, max_w is now included
-    df_window = df_window.drop(df_window.index[0])  # Drop first record in df_window, to keep it the same size
-    df_longterm = df_longterm.append(new_point)       # Same for df_longterm
-    df_longterm = df_longterm.drop(df_longterm.index[0])
+    df_longterm = df_longterm.append(new_point)
 ### Feature Engineerings
     df_window.iloc[-1, 8] = immediate_trend(df_window.Close.iloc[-11:-1])                                        # Immediate trend
     df_window.iloc[-1, 5] = git_candle_cat(df_window.iloc[len(df_window)-1:len(df_window), [0, 1, 2, 3, 8]])     # Candle Pattern. Pass OHLC + Immediate Trend columns
@@ -178,9 +176,12 @@ def new_datetime_alpha(df_longterm, df_window, new_point):
 
     return df_longterm, df_window
 
-def new_datetime_complete(df_longterm, df_window, new_point, pip_closeness_tol=0.0008):
-### Return first part of new_datetime
+def new_datetime_complete(df_longterm, df_window, new_point, pip_closeness_tol=0.0008, keep_df_size=False):
+### Return first part of new_datetime. If df size should be kept the same, drop first row after appending last
     df_longterm, df_window = new_datetime_alpha(df_longterm, df_window, new_point)
+    if keep_df_size:
+	    df_window = df_window.drop(df_window.index[0])
+	    df_longterm = df_longterm.drop(df_longterm.index[0])
 ### Remove previous rows for engineered features, except for 'Rejection' needed for Sloped S+Rs
  ## Is this section still needed? Or redudant, if saving csv with only Rejection anyway
     #df_window.iloc[:-1, 5:9] = np.array(np.nan)

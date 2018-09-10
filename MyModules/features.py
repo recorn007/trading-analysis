@@ -7,6 +7,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.finance as finplt
+#import mpl_finance as finplt
 import matplotlib.pyplot as plt
 from sklearn.cluster import MeanShift, estimate_bandwidth
 from sklearn.linear_model import LinearRegression
@@ -75,7 +76,7 @@ def rejection_price(candles):
     else:
         return np.nan
 
-def support_resistance(price, quant, bin_seed, pip_tol=0.001):
+def support_resistance(price, quant, bin_seed):
     # sklearn
     bandwidth = estimate_bandwidth(price, quantile=quant, n_samples=None)
     ms = MeanShift(bandwidth=bandwidth, bin_seeding=bin_seed, n_jobs=-1)
@@ -88,6 +89,10 @@ def support_resistance(price, quant, bin_seed, pip_tol=0.001):
 
         sr_lines.append(min(values))
         sr_lines.append(max(values))
+
+    return sr_lines
+
+def avg_sr_lines(sr_lines, pip_tol=0.001):
     # average out lines too close to each other
     sr_lines = np.sort(sr_lines)
     while True:
@@ -104,6 +109,17 @@ def support_resistance(price, quant, bin_seed, pip_tol=0.001):
             break
 
     return sr_lines
+
+def redundant_shortterm_sr(shortterm_SR, longterm_SR):
+    to_del = []
+    for i, val in enumerate(shortterm_SR):
+        for j in longterm_SR:
+            if abs(val-j) <= 0.0005:
+                to_del.append(i)
+    if len(to_del) > 0:
+        shortterm_SR = np.delete(shortterm_SR, to_del)
+
+    return shortterm_SR
 
 def trend_lines(price, t, preserve_datetime=False, control_only=False):
     # Requires appropriate t value (where n=9, two tailed 95%)
@@ -134,7 +150,14 @@ def trend_lines(price, t, preserve_datetime=False, control_only=False):
     
     return y, lower, upper
 
-def sloped_SRlines(df_window_index, rejections, slope, tol=0.00175):
+def sloped_SRlines(df_window, shortterm_trend):
+    rejections = df_window[~df_window['Rejection'].isnull()].loc[:, 'Rejection']
+    slope = (shortterm_trend.iloc[-1]-shortterm_trend.iloc[0]) / (len(shortterm_trend))
+    sloped_sr_lines, sloped_sr_lines_starts = get_sloped_SRlines(df_window.index, rejections, slope)
+
+    return sloped_sr_lines, sloped_sr_lines_starts
+
+def get_sloped_SRlines(df_window_index, rejections, slope, tol=0.00175):
     sloped_lines = [[]]
     sloped_lines_starts = []
     for i, R in enumerate(rejections.index):
@@ -180,34 +203,30 @@ def new_datetime_complete(df_longterm, df_window, new_point, pip_closeness_tol=0
 ### Return first part of new_datetime. If df size should be kept the same, drop first row after appending last
     df_longterm, df_window = new_datetime_alpha(df_longterm, df_window, new_point)
     if keep_df_size:
-	    df_window = df_window.drop(df_window.index[0])
-	    df_longterm = df_longterm.drop(df_longterm.index[0])
+        df_window = df_window.drop(df_window.index[0])
+        df_longterm = df_longterm.drop(df_longterm.index[0])
+        
 ### Remove previous rows for engineered features, except for 'Rejection' needed for Sloped S+Rs
  ## Is this section still needed? Or redudant, if saving csv with only Rejection anyway
     #df_window.iloc[:-1, 5:9] = np.array(np.nan)
     #df_window.iloc[:-1, 10:] = np.array(np.nan)
+
 ### Regular + sloped SR lines and trends
     # Calculate the support+resistance lines
-    longterm_SR = support_resistance(df_longterm.iloc[:, :4], quant=0.2, bin_seed=True, pip_tol=0.0020)
-    shortterm_SR = support_resistance(df_window.iloc[:, :4], quant=0.12, bin_seed=True, pip_tol=0.0015)
-      ## delete short-term SR lines too close to long-term SR
-    #to_del = np.array([], dtype=np.int64)
-    to_del = []
-    for i, val in enumerate(shortterm_SR):
-        for j in longterm_SR:
-            if abs(val-j) <= 0.0005:
-                to_del.append(i)
-    if len(to_del) > 0:
-        shortterm_SR = np.delete(shortterm_SR, to_del)
+    longterm_SR = support_resistance(df_longterm.iloc[:, :4], quant=0.2, bin_seed=True)
+    longterm_SR = avg_sr_lines(longterm_SR, pip_tol=0.0020)
+    shortterm_SR = support_resistance(df_window.iloc[:, :4], quant=0.12, bin_seed=True)
+    shortterm_SR = avg_sr_lines(shortterm_SR, pip_tol=0.0015)
+     # delete short-term SR lines too close to long-term SR
+    shortterm_SR = redundant_shortterm_sr(shortterm_SR, longterm_SR)
 
     # Calculate trend lines
     shortterm_trend, st_lower, st_upper = trend_lines(df_window.Close, t=25, preserve_datetime=True)
     longterm_trend, lt_lower, lt_upper = trend_lines(df_longterm.Close, t=25, preserve_datetime=True)
 
     # Calculate S+R lines with same slope as trend's control, determined by trend rejection candles
-    rejections = df_window[~df_window['Rejection'].isnull()].loc[:, 'Rejection']
-    slope = (shortterm_trend.iloc[-1]-shortterm_trend.iloc[0]) / (len(shortterm_trend))
-    sloped_sr_lines, sloped_sr_lines_starts = sloped_SRlines(df_window.index, rejections, slope)
+    sloped_sr_lines, sloped_sr_lines_starts = sloped_SRlines(df_window, shortterm_trend)
+
 ### Value area features
     # Find whether close price is near control
     df_window.iloc[-1, 10] = 1 if abs(df_window.Close.iloc[-1]-shortterm_trend.iloc[-1]) <= pip_closeness_tol else 0

@@ -1,8 +1,9 @@
 # THIS IS FOR PLOTTING WITHIN JUPYTER NOTEBOOK
 # MAY NEED TO MODIFY IF PLOTTING OUTSIDE OF JUPYTER NOTEBOOK
 
-import numpy as np
+import numpy as np, datetime as dt
 import matplotlib.finance as finplt
+#import mpl_finance as finplt
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 from matplotlib.patches import Rectangle
@@ -54,6 +55,7 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
     ax.set_xticklabels(maj_date_labels[maj_date_ticks])
     plt.setp(plt.gca().get_xticklabels(), horizontalalignment='right', rotation=80)
     [i.set_color("white") for i in plt.gca().get_xticklabels()]
+    [i.set_color("darkgray") for i in plt.gca().get_xticklabels() if dt.datetime.strptime(i.get_text(), '%m-%d  %y') > dt.datetime.today()]
     ax.tick_params(axis='x', labelsize=10)
     
     plt.show()

@@ -6,15 +6,15 @@
 
 import pandas as pd
 import numpy as np
-import matplotlib.finance as finplt
-#import mpl_finance as finplt
+#import matplotlib.finance as finplt
+import mpl_finance as finplt
 import matplotlib.pyplot as plt
 from sklearn.cluster import MeanShift, estimate_bandwidth
 from sklearn.linear_model import LinearRegression
 from PIL import Image
 from keras.models import load_model
 
-model = load_model('./MyModules/An eye for an eye - a CNN model.h5')
+CNNmodel = load_model('./MyModules/An eye for an eye - a CNN model.h5')
 
 def git_candle_cat(to_plot, model_guess_tol=0.60):  # model_guess_tol: minimum required certainty for candle category; otherwise cat=0
     plt.rcParams['figure.figsize'] = (0.4, 0.8)
@@ -24,13 +24,14 @@ def git_candle_cat(to_plot, model_guess_tol=0.60):  # model_guess_tol: minimum r
     plt.axis('off')
     plt.savefig('./MyModules/temp_candle.jpg')
     plt.close()
-    category_i = Image.open('./MyModules/temp_candle.jpg').convert('L')
+    category_i = Image.open('./MyModules/temp_candle.jpg').convert('L') # convert to grey-scale
     category_i = np.asarray(category_i.getdata(), dtype=np.float64).reshape((category_i.size[1], category_i.size[0]))
     category_i = np.asarray(category_i, dtype=np.uint8) #if values still in range 0-255! 
     category_i = np.array(Image.fromarray(category_i, mode='L')).astype('float32')
     category_i /= 255
-    category_i = category_i.reshape(1, 28, 57, 1)
-    category_i = model.predict(category_i)
+    #category_i = category_i.reshape(1, 28, 57, 1)
+    category_i = category_i.reshape(1, 40, 80, 1)
+    category_i = CNNmodel.predict(category_i)
     
     if np.max(category_i) >= model_guess_tol:
         category_i = np.argmax(category_i)

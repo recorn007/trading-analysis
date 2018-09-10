@@ -18,11 +18,10 @@ def get_oanda_candles(instr, period, start):
 ## This function assumes that delta are from after the 2nd-to-last candle, since last hasn't closed yet
 def get_df_deltas(instr, freq, period):
 # Get local df dataset
-    df = pd.read_csv(r'datasets/{} {}{}.csv'.format(instr, freq, period),
-                     parse_dates=[0], index_col=0).sort_index()
+    df = pd.read_csv(r'datasets/{} {}{}.csv'.format(instr, freq, period), parse_dates=[0], index_col=0).iloc[:-2]#.sort_index()
     df = df[(df.Open != df.High) & (df.Open != df.Low) & (df.Open != df.Close)]
 # Get delta candles from last date of df
-    delta_candles = get_oanda_candles('EUR_USD', 'D', df.index[-1].strftime('%Y-%m-%dT%H:%M:%S.000000000Z'))
+    delta_candles = get_oanda_candles(instr, period, df.index[-1].strftime('%Y-%m-%dT%H:%M:%S.000000000Z'))
     delta_candles = pd.DataFrame(delta_candles['candles']).drop(['complete', 'volume'], axis=1)
     delta_candles['time'] = pd.to_datetime(delta_candles['time'])
     delta_candles = delta_candles.set_index('time')
@@ -31,8 +30,8 @@ def get_df_deltas(instr, freq, period):
     for c in cols:
         delta_candles[c] = delta_candles['mid'].apply(lambda r: float(r['{}'.format(c[0].lower())]))
     delta_candles = delta_candles.drop('mid', axis=1)
-# Drop last point of df assuming it's the same date as the first delta candle    
-    if df.index[-1] == delta_candles.index[0]: df = df.drop(df.index[-1])
+
+    if df.index[-1] == delta_candles.index[0]: df = df.drop(df.index[-1])  # Drop last point of df assuming it's the same date as the first delta candle
 # Get Rejection price of delta candles (except for current point)
     if len(delta_candles) > 1:
         for n in range(4, 9): df[str(n)] = np.nan
@@ -62,7 +61,7 @@ def split_df(instr, freq, period, len_longterm, len_window):
     
     df_window = df_window_cols(df_window)
 # Save df to local csv
-    df.iloc[max(0, min_w_lt-2):, :].to_csv(r'datasets/{} {}{}.csv'.format(instr, freq, period))
+    df.iloc[max(0, min_w_lt-1):, :].to_csv(r'datasets/{} {}{}.csv'.format(instr, freq, period))
 
     return df_longterm, df_window, df_lastclosed
 
@@ -86,10 +85,15 @@ def get_analyzed_plot(instr, freq, period, len_longterm, len_window):
 # Run new_datetime_complete. Adjust parameters as needed
     df_longterm, df_window, shortterm_SR, longterm_SR, shortterm_trend, st_lower, st_upper, longterm_trend, lt_lower, lt_upper, sloped_sr_lines, sloped_sr_lines_starts \
         = new_datetime_complete(df_longterm, df_window, df_lastclosed, \
-                                pip_closeness_tol=0.0008, keep_df_size=(len(df_longterm) > len_longterm))
+                                pip_closeness_tol=0.0008, keep_df_size=(len(df_longterm) >= len_longterm))
+    
     #warnings.simplefilter(action='ignore', category=DeprecationWarning)  # WARNING STILL NEEDED?
+
     if len(df_lastclosed) != 5: df_window_plt = df_window.append(df_lastclosed.iloc[-1:]).drop(df_window.index[0])
     else: df_window_plt = df_window.drop(df_window.index[0])
+
+    df_last = pd.read_csv(r'datasets/{} {}{}.csv'.format(instr, freq, period), parse_dates=[0], index_col=0).iloc[-1]
+    df_window_plt = df_window_plt.append(df_last)
     
     df_window_plt = df_window_plt.reindex(df_window_plt.index.append(
         pd.date_range(df_window_plt.index[-1], periods=49, freq='{}{}'.format(freq, period), closed='right')))
@@ -98,5 +102,5 @@ def get_analyzed_plot(instr, freq, period, len_longterm, len_window):
                longterm_trend.reindex(df_window.index, axis=0),
                lt_lower.reindex(df_window.index, axis=0), lt_upper.reindex(df_window.index, axis=0),
                shortterm_trend, st_lower, st_upper,
-               sloped_sr_lines, sloped_sr_lines_starts)
+               sloped_sr_lines, sloped_sr_lines_starts, df_last.index)
     return

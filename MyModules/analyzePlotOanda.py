@@ -50,20 +50,22 @@ def get_df_deltas(instr, freq, period):
 def split_df(instr, freq, period, len_longterm, len_window):
     df = get_df_deltas(instr, freq, period)
 
-    min_w_lt = max(0, len(df)-len_longterm)
-    min_w = max(0, len(df)-len_window)
+    min_w_lt = max(0, len(df)-(len_longterm+1))
+    min_w = max(0, len(df)-(len_window+1))
     max_w = len(df)-2                          # execute new_datetime on penultimate candle for analysis
                                                # to wait til close of the candle to make proper IPDE's
     df['Rejection'].iloc[:min_w] = np.nan # remove Rejection price on points leading up to df_window
     df_longterm = df.iloc[min_w_lt:max_w, :].copy()
     df_window = df.iloc[min_w:max_w, :].copy()
-    df_lastclosed = df.iloc[max_w, :].copy()
+    df_lastclosed = df.iloc[max_w].copy()
+    df_last = df.iloc[-1].copy()
     
     df_window = df_window_cols(df_window)
+
 # Save df to local csv
     df.iloc[max(0, min_w_lt-1):, :].to_csv(r'datasets/{} {}{}.csv'.format(instr, freq, period))
 
-    return df_longterm, df_window, df_lastclosed
+    return df_longterm, df_window, df_lastclosed, df_last
 
 def df_window_cols(df_window):
     cols = ['Volume', 'Candle Pattern', 'Same-sized Candle Trend Rejection', 'Engulfing Pattern', 'Immediate Trend Direction', 'Rejection',
@@ -81,19 +83,16 @@ def df_window_cols(df_window):
     return df_window
 
 def get_analyzed_plot(instr, freq, period, len_longterm, len_window):
-    df_longterm, df_window, df_lastclosed = split_df(**locals())
+    df_longterm, df_window, df_lastclosed, df_last = split_df(**locals())
 # Run new_datetime_complete. Adjust parameters as needed
     df_longterm, df_window, shortterm_SR, longterm_SR, shortterm_trend, st_lower, st_upper, longterm_trend, lt_lower, lt_upper, sloped_sr_lines, sloped_sr_lines_starts \
         = new_datetime_complete(df_longterm, df_window, df_lastclosed, \
-                                pip_closeness_tol=0.0008, keep_df_size=(len(df_longterm) >= len_longterm))
+                                pip_closeness_tol=0.0008, keep_df_size=(len(df_longterm) > len_longterm))
     
     #warnings.simplefilter(action='ignore', category=DeprecationWarning)  # WARNING STILL NEEDED?
 
-    if len(df_lastclosed) != 5: df_window_plt = df_window.append(df_lastclosed.iloc[-1:]).drop(df_window.index[0])
-    else: df_window_plt = df_window.drop(df_window.index[0])
-
-    df_last = pd.read_csv(r'datasets/{} {}{}.csv'.format(instr, freq, period), parse_dates=[0], index_col=0).iloc[-1]
-    df_window_plt = df_window_plt.append(df_last)
+    if len(df_lastclosed) != 5: df_window_plt = df_window.append(df_lastclosed.iloc[-1:]).drop(df_window.index[0]).append(df_last)
+    else: df_window_plt = df_window.drop(df_window.index[0]).append(df_last)
     
     df_window_plt = df_window_plt.reindex(df_window_plt.index.append(
         pd.date_range(df_window_plt.index[-1], periods=49, freq='{}{}'.format(freq, period), closed='right')))
@@ -102,5 +101,5 @@ def get_analyzed_plot(instr, freq, period, len_longterm, len_window):
                longterm_trend.reindex(df_window.index, axis=0),
                lt_lower.reindex(df_window.index, axis=0), lt_upper.reindex(df_window.index, axis=0),
                shortterm_trend, st_lower, st_upper,
-               sloped_sr_lines, sloped_sr_lines_starts, df_last.index)
+               sloped_sr_lines, sloped_sr_lines_starts, df_last.name)
     return

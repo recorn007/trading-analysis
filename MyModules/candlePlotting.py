@@ -14,7 +14,7 @@ from IPython.display import clear_output
 
 len_of_future_bars = 50
 cat_map = {0: "No category", 1: "Hammer (body near high)", 2: "Inverted hammer (body near low)", 3: "Spinning top", 4: "Doji with close near high", 5: "Doji with close near low", 6: "Doji with close near middle", 7: "Marubozu", 8: "Hanging man", 9: "Shooting star"}
-params = {0: {'color': 'teal', 'linewidth': 2.35, 'alpha': 1}, 1: {'color': 'teal', 'linewidth': 2, 'alpha': 0.55}, 2: {'color': 'teal', 'linewidth': 2, 'alpha': 0.55}, 3: {'color': 'green', 'linewidth': 2.35, 'alpha': 1}, 4: {'color': 'green', 'linewidth': 2, 'alpha': 0.55}, 5: {'color': 'green', 'linewidth': 2, 'alpha': 0.55}}
+params = {0: {'color': 'c', 'linewidth': 2.35, 'alpha': 1}, 1: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 2: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 3: {'color': 'green', 'linewidth': 2.35, 'alpha': 1}, 4: {'color': 'green', 'linewidth': 2, 'alpha': 0.55}, 5: {'color': 'green', 'linewidth': 2, 'alpha': 0.55}}
 
 def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, lt_upper, shortterm_trend, st_lower, st_upper, sloped_sr_lines, sloped_sr_lines_starts, last_date):
     clear_output()
@@ -28,12 +28,12 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
     ###ax.spines['left'].set_color('white')
     ###ax.spines['bottom'].set_color('white')
 
-    ax.add_patch(Rectangle((len(df_window)-len_of_future_bars-0.5, 0), 1.2, 10, facecolor='purple', alpha=0.3))
+    ax.add_patch(Rectangle((len(df_window)-len_of_future_bars-0.5, 0), 1.2, 10, facecolor='purple', alpha=0.32))
 # Plot the SR lines
     for line in (lt for lt in longterm_SR if lt >= min(df_window.Low) and lt <= max(df_window.High)):
         plt.axhline(y=line, color='firebrick', linewidth=1.5)
     for line in shortterm_SR:
-        plt.axhline(y=line, color='b', linewidth=0.8)
+        plt.axhline(y=line, color='royalblue', linewidth=0.8)
 # Plot the trend lines
     for i, trend in enumerate((shortterm_trend, st_lower, st_upper, longterm_trend, lt_lower, lt_upper)):
         lm = LinearRegression(n_jobs=-1)
@@ -61,7 +61,7 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
     ###[i.set_color("white") for i in plt.gca().get_xticklabels()]
 
     #print(last_date)
-    #[i.set_color("darkgray") for i in plt.gca().get_xticklabels() if dt.datetime.strptime(i.get_text(), '%m-%d  %y') > last_date.index]
+    [i.set_color("darkgray") for i in plt.gca().get_xticklabels() if dt.datetime.strptime(i.get_text(), '%m-%d  %y') > last_date]
     ax.tick_params(axis='x', labelsize=10)
     
     plt.show()

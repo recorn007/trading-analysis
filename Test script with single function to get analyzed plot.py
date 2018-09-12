@@ -2,4 +2,4 @@
 
 from MyModules.analyzePlotOanda import get_analyzed_plot
 
-get_analyzed_plot('EUR_USD', '1', 'D', len_longterm=550, len_window=120)
+zget_analyzed_plot('EUR_USD', '1', 'D', len_longterm=550, len_window=120)

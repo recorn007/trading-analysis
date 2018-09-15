@@ -15,10 +15,10 @@ def get_oanda_candles(instr, period, start):
     else:
         raise http.client.HTTPException("Error in HTTP request (status: " + str(resp.status) + "):\n" + str(resp.read()))
 
+def get_df_deltas(instr, period):
 ## This function assumes that delta are from after the 2nd-to-last candle, since last hasn't closed yet
-def get_df_deltas(instr, freq, period):
 # Get local df dataset
-    df = pd.read_csv(r'datasets/{} {}{}.csv'.format(instr, freq, period), parse_dates=[0], index_col=0).iloc[:-2]#.sort_index()
+    df = pd.read_csv(r'Datasets/{} {}.csv'.format(instr, period), parse_dates=[0], index_col=0).iloc[:-2]#.sort_index()
     df = df[(df.Open != df.High) & (df.Open != df.Low) & (df.Open != df.Close)]
 # Get delta candles from last date of df
     delta_candles = get_oanda_candles(instr, period, df.index[-1].strftime('%Y-%m-%dT%H:%M:%S.000000000Z'))
@@ -47,8 +47,8 @@ def get_df_deltas(instr, freq, period):
     
     return df
 
-def split_df(instr, freq, period, len_longterm, len_window):
-    df = get_df_deltas(instr, freq, period)
+def split_df(instr, period, len_longterm, len_window):
+    df = get_df_deltas(instr, period)
 
     min_w_lt = max(0, len(df)-(len_longterm+1))
     min_w = max(0, len(df)-(len_window+1))
@@ -63,7 +63,7 @@ def split_df(instr, freq, period, len_longterm, len_window):
     df_window = df_window_cols(df_window)
 
 # Save df to local csv
-    df.iloc[max(0, min_w_lt-1):, :].to_csv(r'datasets/{} {}{}.csv'.format(instr, freq, period))
+    df.iloc[max(0, min_w_lt-1):, :].to_csv(r'Datasets/{} {}.csv'.format(instr, period))
 
     return df_longterm, df_window, df_lastclosed, df_last
 
@@ -82,21 +82,22 @@ def df_window_cols(df_window):
     
     return df_window
 
-def get_analyzed_plot(instr, freq, period, len_longterm, len_window):
+def get_analyzed_plot(instr, period, len_longterm, len_window):
     df_longterm, df_window, df_lastclosed, df_last = split_df(**locals())
 # Run new_datetime_complete. Adjust parameters as needed
     df_longterm, df_window, shortterm_SR, longterm_SR, shortterm_trend, st_lower, st_upper, longterm_trend, lt_lower, lt_upper, sloped_sr_lines, sloped_sr_lines_starts \
         = new_datetime_complete(df_longterm, df_window, df_lastclosed, \
                                 pip_closeness_tol=0.0008, keep_df_size=(len(df_longterm) > len_longterm))
-    
+
     #warnings.simplefilter(action='ignore', category=DeprecationWarning)  # WARNING STILL NEEDED?
 
     if len(df_lastclosed) != 5: df_window_plt = df_window.append(df_lastclosed.iloc[-1:]).drop(df_window.index[0]).append(df_last)
     else: df_window_plt = df_window.drop(df_window.index[0]).append(df_last)
     
     df_window_plt = df_window_plt.reindex(df_window_plt.index.append(
-        pd.date_range(df_window_plt.index[-1], periods=49, freq='{}{}'.format(freq, period), closed='right')))
-    
+        pd.date_range(df_window_plt.index[-1], periods=49, freq='{}{}'.format('1' if period[0] != '4' else '4', period), closed='right')))
+    # modify the format for freq in above if considering getting candles with granularities other than 1 or 4
+
     plot_ticks(df_window_plt, longterm_SR, shortterm_SR,
                longterm_trend.reindex(df_window.index, axis=0),
                lt_lower.reindex(df_window.index, axis=0), lt_upper.reindex(df_window.index, axis=0),

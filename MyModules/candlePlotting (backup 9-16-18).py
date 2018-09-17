@@ -1,4 +1,8 @@
+# THIS IS FOR PLOTTING WITHIN JUPYTER NOTEBOOK
+# MAY NEED TO MODIFY IF PLOTTING OUTSIDE OF JUPYTER NOTEBOOK
+
 import numpy as np, datetime as dt
+#import matplotlib.finance as finplt
 import mpl_finance as finplt
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
@@ -12,9 +16,9 @@ len_of_future_bars = 50
 cat_map = {0: "No category", 1: "Hammer (body near high)", 2: "Inverted hammer (body near low)", 3: "Spinning top", 4: "Doji with close near high", 5: "Doji with close near low", 6: "Doji with close near middle", 7: "Marubozu", 8: "Hanging man", 9: "Shooting star"}
 params = {0: {'color': 'c', 'linewidth': 2.35, 'alpha': 1}, 1: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 2: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 3: {'color': 'green', 'linewidth': 2.35, 'alpha': 1}, 4: {'color': 'green', 'linewidth': 2, 'alpha': 0.55}, 5: {'color': 'green', 'linewidth': 2, 'alpha': 0.55}}
 
-def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, lt_upper, shortterm_trend, st_lower, st_upper, sloped_sr_lines, sloped_sr_lines_starts, last_date, instr, period):
+def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, lt_upper, shortterm_trend, st_lower, st_upper, sloped_sr_lines, sloped_sr_lines_starts, last_date):
     clear_output()
-    plt.rcParams['figure.figsize'] = (16, 8)
+    plt.rcParams['figure.figsize'] = (24, 18)
     fig, ax = plt.subplots()
     fig.subplots_adjust(bottom=0.2)
     finplt.candlestick2_ohlc(ax, df_window.Open, df_window.High, df_window.Low, df_window.Close,
@@ -59,33 +63,15 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
     #print(last_date)
     [i.set_color("darkgray") for i in plt.gca().get_xticklabels() if dt.datetime.strptime(i.get_text(), '%m-%d  %y') > last_date]
     ax.tick_params(axis='x', labelsize=10)
-
-    filename = './Analyses/{}/{} {}'.format(instr, instr, period)
-    plt.savefig(filename + '.jpg', bbox_inches='tight')
-    plt.close()
-
-    with open(filename + '.txt', 'w') as txt:
-        print('   ' + str(df_window.index[-len_of_future_bars])[:13] + 'h', file=txt)
-        txt.close()
-    with open(filename + '.txt', 'a') as txt:
-        if df_window.iloc[-len_of_future_bars, 5] != 0:
-            print(cat_map[df_window.iloc[-len_of_future_bars, 5]], file=txt)
-        for i in range(6, 34):
-            if i not in (9, 28) and df_window.iloc[-len_of_future_bars, i] != 0:
-                print(df_window.columns[i], end='', file=txt)
-                if i == 8: print(':', 'Upwards' if df_window.iloc[-len_of_future_bars, i] == 1 else 'Downwards', end='', file=txt)
-                if i in (16, 17, 18, 19, 20, 21, 25, 26, 31, 32, 33): print(' (from BELOW)' if df_window.iloc[-len_of_future_bars, i] == 1 else '(from ABOVE)', file=txt)
-                else: print('', file=txt)
-        txt.close()
-
-    # plt.show()
     
-    # print('   ' + str(df_window.index[-len_of_future_bars])[:13] + 'h')
-    # if df_window.iloc[-len_of_future_bars, 5] != 0:
-    #     print(cat_map[df_window.iloc[-len_of_future_bars, 5]])
-    # for i in range(6, 34):
-    #     if i not in (9, 28) and df_window.iloc[-len_of_future_bars, i] != 0:
-    #         print(df_window.columns[i], end='')
-    #         if i == 8: print(':', 'Upwards' if df_window.iloc[-len_of_future_bars, i] == 1 else 'Downwards', end='')
-    #         if i in (16, 17, 18, 19, 20, 21, 25, 26, 31, 32, 33): print(' (from BELOW)' if df_window.iloc[-len_of_future_bars, i] == 1 else '(from ABOVE)')
-    #         else: print('')
+    plt.show()
+    
+    print('   ' + str(df_window.index[-len_of_future_bars])[:13] + 'h')
+    if df_window.iloc[-len_of_future_bars, 5] != 0:
+        print(cat_map[df_window.iloc[-len_of_future_bars, 5]])
+    for i in range(6, 34):
+        if i not in (9, 28) and df_window.iloc[-len_of_future_bars, i] != 0:
+            print(df_window.columns[i], end='')
+            if i == 8: print(':', 'Upwards' if df_window.iloc[-len_of_future_bars, i] == 1 else 'Downwards', end='')
+            if i in (16, 17, 18, 19, 20, 21, 25, 26, 31, 32, 33): print(' (from BELOW)' if df_window.iloc[-len_of_future_bars, i] == 1 else '(from ABOVE)')
+            else: print('')

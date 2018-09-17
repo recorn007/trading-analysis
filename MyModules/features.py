@@ -1,12 +1,5 @@
-# The git_candle_cat function NEEDS to be reviewed, once scripts will be used in lieu of jupyter notebook
-# Each exported candle image is exported as 28x57 from the notebook, HOWEVER
-# From the script, they're exported as 40x80. This SHOULD be the case, since line 21 on the rcParams specifies it as such
-#
-# tl;dr / TODO: Once scripts are used, consider re-building the CNN model, except with using a script in lieu of jupyter notebook
-
 import pandas as pd
 import numpy as np
-#import matplotlib.finance as finplt
 import mpl_finance as finplt
 import matplotlib.pyplot as plt
 from sklearn.cluster import MeanShift, estimate_bandwidth

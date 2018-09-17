@@ -94,13 +94,13 @@ def get_analyzed_plot(instr, period, len_longterm, len_window):
     if len(df_lastclosed) != 5: df_window_plt = df_window.append(df_lastclosed.iloc[-1:]).drop(df_window.index[0]).append(df_last)
     else: df_window_plt = df_window.drop(df_window.index[0]).append(df_last)
     
-    df_window_plt = df_window_plt.reindex(df_window_plt.index.append(
-        pd.date_range(df_window_plt.index[-1], periods=49, freq='{}{}'.format('1' if period[0] != '4' else '4', period), closed='right')))
+    df_window_plt = df_window_plt.reindex(df_window_plt.index[:-1].append(
+        pd.date_range(df_window_plt.index[-1], periods=49, freq='{}{}'.format(period[1] if len(period)>1 else '1', period[0] if len(period)>1 else period))))
     # modify the format for freq in above if considering getting candles with granularities other than 1 or 4
 
     plot_ticks(df_window_plt, longterm_SR, shortterm_SR,
                longterm_trend.reindex(df_window.index, axis=0),
                lt_lower.reindex(df_window.index, axis=0), lt_upper.reindex(df_window.index, axis=0),
                shortterm_trend, st_lower, st_upper,
-               sloped_sr_lines, sloped_sr_lines_starts, df_last.name)
+               sloped_sr_lines, sloped_sr_lines_starts, df_last.name, instr, period)
     return

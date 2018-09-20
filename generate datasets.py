@@ -39,8 +39,11 @@ def gen_csv(c, t):
     for n in range(4, 9): df[str(n)] = np.nan
     df = df[['Open', 'High', 'Low', 'Close', '4', '5', '6', '7', '8', 'Rejection']]
 
-    df_get_alpha = df.iloc[430:, :]
-    df = df.iloc[:430, :]
+    len_window = 120
+    min_w = max(0, len(df)-len_window)
+
+    df_get_alpha = df.iloc[min_w:, :]
+    df = df.iloc[:min_w, :]
 
     for i in range(len(df_get_alpha)):
         _, df = new_datetime_alpha(df, df, df_get_alpha.iloc[i])

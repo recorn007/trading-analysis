@@ -91,8 +91,9 @@ def get_analyzed_plot(instr, period, len_longterm, len_window):
 
     #warnings.simplefilter(action='ignore', category=DeprecationWarning)  # WARNING STILL NEEDED?
 
-    if len(df_lastclosed) != 5: df_window_plt = df_window.append(df_lastclosed.iloc[-1:]).drop(df_window.index[0]).append(df_last)
-    else: df_window_plt = df_window.drop(df_window.index[0]).append(df_last)
+#    if len(df_lastclosed) != 5: df_window_plt = df_window.append(df_lastclosed.iloc[-1:]).drop(df_window.index[0]).append(df_last)
+#    else: df_window_plt = df_window.drop(df_window.index[0]).append(df_last)
+    df_window_plt = df_window.drop(df_window.index[0]).append(df_last)
     
     df_window_plt = df_window_plt.reindex(df_window_plt.index[:-1].append(
         pd.date_range(df_window_plt.index[-1], periods=49, freq='{}{}'.format(period[1] if len(period)>1 else '1', period[0] if len(period)>1 else period))))

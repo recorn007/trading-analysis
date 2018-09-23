@@ -131,8 +131,10 @@ def trend_lines(price, t, preserve_datetime=False, control_only=False):
     n = len(price)
     s_err = np.sum(np.power(y_err,2))
 
-    confs = t * np.sqrt((s_err/(n-2))*(1.0/n + (np.power((np.arange(n)-mean_x), 2) /
-                ((np.sum(np.power(np.arange(n),2))) - n*(np.power(mean_x, 2))))))
+    # confs = t * np.sqrt((s_err/(n-2))*(1.0/n + (np.power((np.arange(n)-mean_x), 2) /
+    #             ((np.sum(np.power(np.arange(n),2))) - n*(np.power(mean_x, 2))))))
+    confs = t * np.sqrt(abs((s_err/(n-2))*(1.0/n + (np.power((np.arange(n)-mean_x), 2) /
+                ((np.sum(np.power(np.arange(n),2))) - n*(np.power(mean_x, 2)))))))
     
     if preserve_datetime:
         lower = pd.Series(y - abs(confs[0]), index=price.index)

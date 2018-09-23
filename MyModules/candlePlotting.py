@@ -21,9 +21,7 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
                              width=0.6, colorup='lime', colordown='r', alpha=0.75)    
     ax.autoscale_view()
     ax.set_facecolor('#161616')
-    ###ax.spines['left'].set_color('white')
-    ###ax.spines['bottom'].set_color('white')
-
+# Highlight last closed candle
     ax.add_patch(Rectangle((len(df_window)-len_of_future_bars-0.5, 0), 1.2, 10, facecolor='purple', alpha=0.32))
 # Plot the SR lines
     for line in (lt for lt in longterm_SR if lt >= min(df_window.Low) and lt <= max(df_window.High)):
@@ -33,7 +31,11 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
 # Plot the trend lines
     for i, trend in enumerate((shortterm_trend, st_lower, st_upper, longterm_trend, lt_lower, lt_upper)):
         lm = LinearRegression(n_jobs=-1)
-        lm.fit(np.arange(5).reshape(-1, 1), trend[:5])
+        try:
+            lm.fit(np.arange(5).reshape(-1, 1), trend[:5])
+        except:
+            print(i, trend)
+            exit
         y = lm.predict(np.arange(len(df_window)).reshape(-1, 1))
         plt.plot(y, '-.', color=params[i]['color'], linewidth=params[i]['linewidth'], alpha=params[i]['alpha'])
 # Plot S+R lines with same slope as trend's control, determined by trend rejection candles
@@ -47,23 +49,41 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
 # Format axes
     plt.ylim(min(df_window.Low), max(df_window.High))
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.5f'))
-    ###[i.set_color("white") for i in plt.gca().get_yticklabels()]
-    
-    maj_date_ticks = [i for i, d in enumerate(df_window.index) if i%2 == 0 and i != len(df_window)-1 and str(d)[:10] != str(df_window.index[i+1])[:10]]
-    maj_date_labels = df_window.index.map(lambda d: str(d)[5:10] + '  ' + str(d)[2:4])
+# Format ticks
+    if period == 'M':
+        maj_date_ticks = [i for i, d in enumerate(df_window.index) if (int(str(d)[5:7])<=2 and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars) or d == last_date]
+        maj_date_labels = df_window.index.map(lambda d: str(d)[2:10])
+        min_date_ticks = [i for i, d in enumerate(df_window.index) if i not in maj_date_ticks and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars]
+        min_date_labels = df_window.index.map(lambda d: str(d)[5:10] + ' ')
+    elif period == 'W':
+        maj_date_ticks = [i for i, d in enumerate(df_window.index) if (str(d)[5:7]=='01' and str(df_window.index[i-1])[5:7]=='12' and str(df_window.index[i-1])[5:7]!='01' and i <= len(df_window.index)-len_of_future_bars) or d == last_date]
+        maj_date_labels = df_window.index.map(lambda d: str(d)[:4] + '          ')
+        min_date_ticks = [i for i, d in enumerate(df_window.index) if i not in maj_date_ticks and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars]
+        min_date_labels = df_window.index.map(lambda d: str(d)[5:10])
+    elif period == 'D':
+        maj_date_ticks = [i for i, d in enumerate(df_window.index) if (str(d)[5:7]!=str(df_window.index[i-1])[5:7] and str(d)[5:7]==str(df_window.index[i+1])[5:7] and i <= len(df_window.index)-len_of_future_bars) or d == last_date]
+        maj_date_labels = df_window.index.map(lambda d: str(d)[5:10] + '         ')
+        min_date_ticks = [i for i, d in enumerate(df_window.index) if i not in maj_date_ticks and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars]
+        min_date_labels = df_window.index.map(lambda d: str(d)[5:10])
+    elif period == 'H4':
+        maj_date_ticks = [i for i, d in enumerate(df_window.index) if str(d)[11:13]=='00' and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars]
+        maj_date_labels = df_window.index.map(lambda d: str(d)[5:10] + '     ')
+        min_date_ticks = [i for i, d in enumerate(df_window.index) if (i not in maj_date_ticks and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars) or d == last_date]
+        min_date_labels = df_window.index.map(lambda d: str(d)[5:13])
+
+    ax.set_xticks(min_date_ticks, minor=True)
+    ax.set_xticklabels(min_date_labels[min_date_ticks], minor=True)
     ax.set_xticks(maj_date_ticks)
     ax.set_xticklabels(maj_date_labels[maj_date_ticks])
+
+    plt.setp(plt.gca().get_xticklabels(minor=True), horizontalalignment='right', rotation=80)
     plt.setp(plt.gca().get_xticklabels(), horizontalalignment='right', rotation=80)
-    ###[i.set_color("white") for i in plt.gca().get_xticklabels()]
-
-    #print(last_date)
-    [i.set_color("darkgray") for i in plt.gca().get_xticklabels() if dt.datetime.strptime(i.get_text(), '%m-%d  %y') > last_date]
     ax.tick_params(axis='x', labelsize=10)
-
+# Save plot as jpg
     filename = './Analyses/{}/{} {}'.format(instr, instr, period)
     plt.savefig(filename + '.jpg', bbox_inches='tight')
     plt.close()
-
+# Save features as txt
     with open(filename + '.txt', 'w') as txt:
         print('   ' + str(df_window.index[-len_of_future_bars])[:13] + 'h', file=txt)
         txt.close()
@@ -77,15 +97,3 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
                 if i in (16, 17, 18, 19, 20, 21, 25, 26, 31, 32, 33): print(' (from BELOW)' if df_window.iloc[-len_of_future_bars, i] == 1 else '(from ABOVE)', file=txt)
                 else: print('', file=txt)
         txt.close()
-
-    # plt.show()
-    
-    # print('   ' + str(df_window.index[-len_of_future_bars])[:13] + 'h')
-    # if df_window.iloc[-len_of_future_bars, 5] != 0:
-    #     print(cat_map[df_window.iloc[-len_of_future_bars, 5]])
-    # for i in range(6, 34):
-    #     if i not in (9, 28) and df_window.iloc[-len_of_future_bars, i] != 0:
-    #         print(df_window.columns[i], end='')
-    #         if i == 8: print(':', 'Upwards' if df_window.iloc[-len_of_future_bars, i] == 1 else 'Downwards', end='')
-    #         if i in (16, 17, 18, 19, 20, 21, 25, 26, 31, 32, 33): print(' (from BELOW)' if df_window.iloc[-len_of_future_bars, i] == 1 else '(from ABOVE)')
-    #         else: print('')

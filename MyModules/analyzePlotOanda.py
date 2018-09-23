@@ -21,7 +21,12 @@ def get_df_deltas(instr, period):
     df = pd.read_csv(r'Datasets/{} {}.csv'.format(instr, period), parse_dates=[0], index_col=0).iloc[:-2]#.sort_index()
     df = df[(df.Open != df.High) & (df.Open != df.Low) & (df.Open != df.Close)]
 # Get delta candles from last date of df
-    delta_candles = get_oanda_candles(instr, period, df.index[-1].strftime('%Y-%m-%dT%H:%M:%S.000000000Z'))
+    delta_candles = None
+    while delta_candles is None:
+        try:
+            delta_candles = get_oanda_candles(instr, period, df.index[-1].strftime('%Y-%m-%dT%H:%M:%S.000000000Z'))
+        except:
+            pass
     delta_candles = pd.DataFrame(delta_candles['candles']).drop(['complete', 'volume'], axis=1)
     delta_candles['time'] = pd.to_datetime(delta_candles['time'])
     delta_candles = delta_candles.set_index('time')

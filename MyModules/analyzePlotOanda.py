@@ -17,9 +17,8 @@ def get_oanda_candles(instr, period, start):
 
 def get_df_deltas(instr, period):
 ## This function assumes that delta are from after the 2nd-to-last candle, since last hasn't closed yet
-# Get local df dataset
-    df = pd.read_csv(r'Datasets/{} {}.csv'.format(instr, period), parse_dates=[0], index_col=0).iloc[:-2]#.sort_index()
-    df = df[(df.Open != df.High) & (df.Open != df.Low) & (df.Open != df.Close)]
+    df = pd.read_csv(r'Datasets/{} {}.csv'.format(instr, period), parse_dates=[0], index_col=0)
+    #df = df[(df.Open != df.High) & (df.Open != df.Low) & (df.Open != df.Close)]  # this doesn't work as intended
 # Get delta candles from last date of df
     delta_candles = None
     while delta_candles is None:
@@ -68,7 +67,9 @@ def split_df(instr, period, len_longterm, len_window):
     df_window = df_window_cols(df_window)
 
 # Save df to local csv
-    df.iloc[max(0, min_w_lt-1):, :].to_csv(r'Datasets/{} {}.csv'.format(instr, period))
+    while len(df) > len_longterm:
+        df = df.iloc[1:]
+    df.to_csv(r'Datasets/{} {}.csv'.format(instr, period))
 
     return df_longterm, df_window, df_lastclosed, df_last
 

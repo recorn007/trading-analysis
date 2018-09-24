@@ -6,9 +6,9 @@ def main():
     currensy = ('EUR_USD', 'EUR_JPY', 'EUR_CAD', 'EUR_AUD', 'AUD_USD', 'USD_CAD', 'USD_JPY')
     timePeriods = ('M', 'W', 'D', 'H4')
 
-    for c in currensy:
-        for t in timePeriods:
-            gen_csv(c, t)
+    for cur in currensy:
+        for time in timePeriods:
+            gen_csv(cur, time)
 
     return
 

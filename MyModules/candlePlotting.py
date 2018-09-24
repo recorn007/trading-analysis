@@ -8,11 +8,10 @@ from IPython.display import clear_output
 
 # modify parameters as needed
 
-len_of_future_bars = 50
 cat_map = {0: "No category", 1: "Hammer (body near high)", 2: "Inverted hammer (body near low)", 3: "Spinning top", 4: "Doji with close near high", 5: "Doji with close near low", 6: "Doji with close near middle", 7: "Marubozu", 8: "Hanging man", 9: "Shooting star"}
 params = {0: {'color': 'c', 'linewidth': 2.35, 'alpha': 1}, 1: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 2: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 3: {'color': 'green', 'linewidth': 2.35, 'alpha': 1}, 4: {'color': 'green', 'linewidth': 2, 'alpha': 0.55}, 5: {'color': 'green', 'linewidth': 2, 'alpha': 0.55}}
 
-def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, lt_upper, shortterm_trend, st_lower, st_upper, sloped_sr_lines, sloped_sr_lines_starts, last_date, instr, period):
+def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, lt_upper, shortterm_trend, st_lower, st_upper, sloped_sr_lines, sloped_sr_lines_starts, last_date, len_of_future_bars, instr, period):
     clear_output()
     plt.rcParams['figure.figsize'] = (16, 8)
     fig, ax = plt.subplots()
@@ -51,24 +50,24 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
     ax.yaxis.set_major_formatter(FormatStrFormatter('%.5f'))
 # Format ticks
     if period == 'M':
-        maj_date_ticks = [i for i, d in enumerate(df_window.index) if (int(str(d)[5:7])<=2 and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars) or d == last_date]
+        maj_date_ticks = [i for i, d in enumerate(df_window.index[:-(len_of_future_bars-2)]) if (int(str(d)[5:7])<=2 and i%2 == 0) or d == last_date]
         maj_date_labels = df_window.index.map(lambda d: str(d)[2:10])
-        min_date_ticks = [i for i, d in enumerate(df_window.index) if i not in maj_date_ticks and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars]
+        min_date_ticks = [i for i, d in enumerate(df_window.index[:-(len_of_future_bars-2)]) if i not in maj_date_ticks and i%2 == 0]
         min_date_labels = df_window.index.map(lambda d: str(d)[5:10] + ' ')
     elif period == 'W':
-        maj_date_ticks = [i for i, d in enumerate(df_window.index) if (str(d)[5:7]=='01' and str(df_window.index[i-1])[5:7]=='12' and str(df_window.index[i-1])[5:7]!='01' and i <= len(df_window.index)-len_of_future_bars) or d == last_date]
+        maj_date_ticks = [i for i, d in enumerate(df_window.index[:-(len_of_future_bars-3)]) if (str(d)[5:7]=='01' and str(df_window.index[i-1])[5:7]=='12' and str(df_window.index[i-1])[5:7]!='01') or d == last_date]
         maj_date_labels = df_window.index.map(lambda d: str(d)[:4] + '          ')
-        min_date_ticks = [i for i, d in enumerate(df_window.index) if i not in maj_date_ticks and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars]
+        min_date_ticks = [i for i, d in enumerate(df_window.index[:-(len_of_future_bars-3)]) if i not in maj_date_ticks and i%2 == 0]
         min_date_labels = df_window.index.map(lambda d: str(d)[5:10])
     elif period == 'D':
-        maj_date_ticks = [i for i, d in enumerate(df_window.index) if (str(d)[5:7]!=str(df_window.index[i-1])[5:7] and str(d)[5:7]==str(df_window.index[i+1])[5:7] and i <= len(df_window.index)-len_of_future_bars) or d == last_date]
+        maj_date_ticks = [i for i, d in enumerate(df_window.index[:-(len_of_future_bars-3)]) if (str(d)[5:7]!=str(df_window.index[i-1])[5:7] and str(d)[5:7]==str(df_window.index[i+1])[5:7]) or d == last_date]
         maj_date_labels = df_window.index.map(lambda d: str(d)[5:10] + '         ')
-        min_date_ticks = [i for i, d in enumerate(df_window.index) if i not in maj_date_ticks and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars]
+        min_date_ticks = [i for i, d in enumerate(df_window.index[:-(len_of_future_bars-3)]) if i not in maj_date_ticks and i%2 == 0]
         min_date_labels = df_window.index.map(lambda d: str(d)[5:10])
     elif period == 'H4':
-        maj_date_ticks = [i for i, d in enumerate(df_window.index) if str(d)[11:13]=='00' and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars]
+        maj_date_ticks = [i for i, d in enumerate(df_window.index[:-(len_of_future_bars-3)]) if str(d)[11:13]=='00' and i%2 == 0]
         maj_date_labels = df_window.index.map(lambda d: str(d)[5:10] + '     ')
-        min_date_ticks = [i for i, d in enumerate(df_window.index) if (i not in maj_date_ticks and i%2 == 0 and i <= len(df_window.index)-len_of_future_bars) or d == last_date]
+        min_date_ticks = [i for i, d in enumerate(df_window.index[:-(len_of_future_bars-3)]) if (i not in maj_date_ticks and i%2 == 0) or d == last_date]
         min_date_labels = df_window.index.map(lambda d: str(d)[5:13])
 
     ax.set_xticks(min_date_ticks, minor=True)

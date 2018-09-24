@@ -58,7 +58,7 @@ def split_df(instr, period, len_longterm, len_window):
     min_w = max(0, len(df)-(len_window+1))
     max_w = len(df)-2                          # execute new_datetime on penultimate candle for analysis
                                                # to wait til close of the candle to make proper IPDE's
-    df['Rejection'].iloc[:min_w] = np.nan # remove Rejection price on points leading up to df_window
+    df['Rejection'].iloc[:min_w+1] = np.nan # remove Rejection price on points leading up to df_window
     df_longterm = df.iloc[min_w_lt:max_w, :].copy()
     df_window = df.iloc[min_w:max_w, :].copy()
     df_lastclosed = df.iloc[max_w].copy()
@@ -94,20 +94,21 @@ def get_analyzed_plot(instr, period, len_longterm, len_window):
     df_longterm, df_window, shortterm_SR, longterm_SR, shortterm_trend, st_lower, st_upper, longterm_trend, lt_lower, lt_upper, sloped_sr_lines, sloped_sr_lines_starts \
         = new_datetime_complete(df_longterm, df_window, df_lastclosed, \
                                 pip_closeness_tol=0.0008, keep_df_size=(len(df_longterm) > len_longterm))
+    len_of_future_bars = 50
+    df_window_plt = df_window.iloc[1:].append(df_last)
 
-    #warnings.simplefilter(action='ignore', category=DeprecationWarning)  # WARNING STILL NEEDED?
-
-#    if len(df_lastclosed) != 5: df_window_plt = df_window.append(df_lastclosed.iloc[-1:]).drop(df_window.index[0]).append(df_last)
-#    else: df_window_plt = df_window.drop(df_window.index[0]).append(df_last)
-    df_window_plt = df_window.drop(df_window.index[0]).append(df_last)
-    
-    df_window_plt = df_window_plt.reindex(df_window_plt.index[:-1].append(
-        pd.date_range(df_window_plt.index[-1], periods=49, freq='{}{}'.format(period[1] if len(period)>1 else '1', period[0] if len(period)>1 else period))))
+    # df_window_plt = df_window_plt.reindex(df_window_plt.index.append(
+    #     pd.date_range(df_window_plt.index[-1], periods=len_of_future_bars-2, closed='right',
+    #                   freq='{}{}'.format(period[1] if len(period)>1 else '1', period[0] if len(period)>1 else period))))
     # modify the format for freq in above if considering getting candles with granularities other than 1 or 4
+    
+    df_window_plt = df_window_plt.reindex(df_window_plt.index.append(pd.Index(str(n) for n in range(len_of_future_bars-2))))
+    #raise Exception(len(df_window_plt))
+    # for i in range(len(df_window_plt)-55, len(df_window_plt)-45): print(df_window_plt.index[i])
 
     plot_ticks(df_window_plt, longterm_SR, shortterm_SR,
                longterm_trend.reindex(df_window.index, axis=0),
                lt_lower.reindex(df_window.index, axis=0), lt_upper.reindex(df_window.index, axis=0),
                shortterm_trend, st_lower, st_upper,
-               sloped_sr_lines, sloped_sr_lines_starts, df_last.name, instr, period)
+               sloped_sr_lines, sloped_sr_lines_starts, df_last.name, len_of_future_bars, instr, period)
     return

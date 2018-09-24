@@ -1,8 +1,9 @@
 from MyModules.analyzePlotOanda import get_analyzed_plot
 
 def main():
-    currensy = ('EUR_USD', 'EUR_JPY', 'EUR_CAD', 'EUR_AUD', 'AUD_USD', 'USD_CAD', 'USD_JPY')
-    timePeriods = ('M', 'W', 'D')#, 'H4')
+    #currensy = ('EUR_USD', 'EUR_JPY', 'EUR_CAD', 'EUR_AUD', 'AUD_USD', 'USD_CAD', 'USD_JPY')
+    currensy = ('EUR_USD', 'EUR_CAD', 'EUR_AUD', 'AUD_USD', 'USD_CAD')
+    timePeriods = ('M', 'W', 'D', 'H4')
 
     for cur in currensy:
         for time in timePeriods:

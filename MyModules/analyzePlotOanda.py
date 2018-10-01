@@ -90,7 +90,6 @@ def df_window_cols(df_window):
 
 def get_analyzed_plot(instr, period, len_longterm, len_window):
     df_longterm, df_window, df_lastclosed, df_last = split_df(**locals())
-# Run new_datetime_complete. Adjust parameters as needed
     df_longterm, df_window, shortterm_SR, longterm_SR, shortterm_trend, st_lower, st_upper, longterm_trend, lt_lower, lt_upper, sloped_sr_lines, sloped_sr_lines_starts \
         = new_datetime_complete(df_longterm, df_window, df_lastclosed, \
                                 pip_closeness_tol=0.0008, keep_df_size=(len(df_longterm) > len_longterm))

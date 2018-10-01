@@ -81,7 +81,9 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
 # Save plot as jpg
     filename = './Analyses/{}/{} {}'.format(instr, instr, period)
     plt.savefig(filename + '.jpg', bbox_inches='tight')
-    plt.close()
+    plt.cla() 
+    plt.clf() 
+    plt.close('all')
 # Save features as txt
     with open(filename + '.txt', 'w') as txt:
         print('   ' + str(df_window.index[-len_of_future_bars])[:13] + 'h', file=txt)

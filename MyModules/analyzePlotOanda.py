@@ -91,8 +91,7 @@ def df_window_cols(df_window):
 def get_analyzed_plot(instr, period, len_longterm, len_window):
     df_longterm, df_window, df_lastclosed, df_last = split_df(**locals())
     df_longterm, df_window, shortterm_SR, longterm_SR, shortterm_trend, st_lower, st_upper, longterm_trend, lt_lower, lt_upper, sloped_sr_lines, sloped_sr_lines_starts \
-        = new_datetime_complete(df_longterm, df_window, df_lastclosed, \
-                                pip_closeness_tol=0.0008, keep_df_size=(len(df_longterm) > len_longterm))
+        = new_datetime_complete(df_longterm, df_window, df_lastclosed, keep_df_size=(len(df_longterm) > len_longterm))
     len_of_future_bars = 50
     df_window_plt = df_window.iloc[1:].append(df_last)
 

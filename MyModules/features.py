@@ -43,7 +43,8 @@ def immediate_trend(to_plot):
     immediate_trend = trend_lines(to_plot, t=25, control_only=True)
     return np.sign(immediate_trend[-1]-immediate_trend[0])
 
-def same_sized_candle_trend_rejection(candles, trend, size_tol=1.25):
+def same_sized_candle_trend_rejection(candles, trend, ratio):
+    size_tol = 1.25 * ratio
     if candles.Close.iloc[0] - candles.Open.iloc[0] != 0 and candles.Close.iloc[1] - candles.Open.iloc[1] != 0:
         if (1/size_tol) <= (abs(candles.Close.iloc[0] - candles.Open.iloc[0]) / abs(candles.Close.iloc[1] - candles.Open.iloc[1])) <= size_tol and \
            np.sign(candles.Close.iloc[0] - candles.Open.iloc[0]) * np.sign(candles.Close.iloc[1] - candles.Open.iloc[1]) == -1 and \
@@ -86,7 +87,8 @@ def support_resistance(price, quant, bin_seed):
 
     return sr_lines
 
-def avg_sr_lines(sr_lines, pip_tol=0.001):
+def avg_sr_lines(sr_lines, ratio, longTerm=False):
+    pip_tol = 0.0020 * ratio if longTerm else 0.0015 * ratio
     # average out lines too close to each other
     sr_lines = np.sort(sr_lines)
     while True:
@@ -146,14 +148,15 @@ def trend_lines(price, t, preserve_datetime=False, control_only=False):
     
     return y, lower, upper
 
-def sloped_SRlines(df_window, shortterm_trend):
+def sloped_SRlines(df_window, shortterm_trend, ratio):
     rejections = df_window[~df_window['Rejection'].isnull()].loc[:, 'Rejection']
     slope = (shortterm_trend.iloc[-1]-shortterm_trend.iloc[0]) / (len(shortterm_trend))
-    sloped_sr_lines, sloped_sr_lines_starts = get_sloped_SRlines(df_window.index, rejections, slope)
+    sloped_sr_lines, sloped_sr_lines_starts = get_sloped_SRlines(df_window.index, rejections, slope, ratio)
 
     return sloped_sr_lines, sloped_sr_lines_starts
 
-def get_sloped_SRlines(df_window_index, rejections, slope, tol=0.00175):
+def get_sloped_SRlines(df_window_index, rejections, slope, ratio):
+    tol = 0.00175 * ratio
     sloped_lines = [[]]
     sloped_lines_starts = []
     for i, R in enumerate(rejections.index):
@@ -182,22 +185,29 @@ def fibo_levels(max_price, min_price):
 
     return fib_level1, fib_level2, fib_level3
 
-def new_datetime_alpha(df_longterm, df_window, new_point):
+def new_datetime_alpha(df_longterm, df_window, new_point, to_complete=False):
     df_window = df_window.append(new_point)         # When defining df_window, included all points up max_w. Here, max_w is now included
     df_longterm = df_longterm.append(new_point)
+### Get range ratio of the df_window candles. The range is compared to the golden standard of the Daily EUR_USD chart, particularly captured on Sep 30, 2018
+    maxi = max(df_window.Close) if max(df_window.Close) > max(df_window.Open) else max(df_window.Open)
+    mini = min(df_window.Close) if min(df_window.Close) < min(df_window.Open) else min(df_window.Open)
+    rangeRatio = (maxi - mini) / 0.06111
 ### Feature Engineerings
     df_window.iloc[-1, 8] = immediate_trend(df_window.Close.iloc[-11:-1])                                        # Immediate trend
     df_window.iloc[-1, 5] = git_candle_cat(df_window.iloc[len(df_window)-1:len(df_window), [0, 1, 2, 3, 8]])     # Candle Pattern. Pass OHLC + Immediate Trend columns
     # Same sized candle trend rejection
-    df_window.iloc[-1, 6] = same_sized_candle_trend_rejection(df_window.iloc[len(df_window)-2:len(df_window), :4], df_window.iloc[-1, 8])
+    df_window.iloc[-1, 6] = same_sized_candle_trend_rejection(df_window.iloc[len(df_window)-2:len(df_window), :4], df_window.iloc[-1, 8], rangeRatio)
     df_window.iloc[-1, 7] = engulfing_check(df_window.iloc[len(df_window)-2:len(df_window), 1:3])                # Engulfing pattern
     df_window.iloc[-1, 9] = rejection_price(df_window.iloc[-1, :7])                                              # Rejection
 
-    return df_longterm, df_window
+    if to_complete:
+        return df_longterm, df_window, rangeRatio
+    else:
+        return df_longterm, df_window
 
-def new_datetime_complete(df_longterm, df_window, new_point, pip_closeness_tol=0.0008, keep_df_size=False):
+def new_datetime_complete(df_longterm, df_window, new_point, keep_df_size=False):
 ### Return first part of new_datetime. If df size should be kept the same, drop first row after appending last
-    df_longterm, df_window = new_datetime_alpha(df_longterm, df_window, new_point)
+    df_longterm, df_window, rangeRatio = new_datetime_alpha(df_longterm, df_window, new_point, to_complete=True)
     if keep_df_size:
         df_window = df_window.drop(df_window.index[0])
         df_longterm = df_longterm.drop(df_longterm.index[0])
@@ -210,9 +220,9 @@ def new_datetime_complete(df_longterm, df_window, new_point, pip_closeness_tol=0
 ### Regular + sloped SR lines and trends
     # Calculate the support+resistance lines
     longterm_SR = support_resistance(df_longterm.iloc[:, :4], quant=0.2, bin_seed=True)
-    longterm_SR = avg_sr_lines(longterm_SR, pip_tol=0.0020)
+    longterm_SR = avg_sr_lines(longterm_SR, rangeRatio, longTerm=True)
     shortterm_SR = support_resistance(df_window.iloc[:, :4], quant=0.12, bin_seed=True)
-    shortterm_SR = avg_sr_lines(shortterm_SR, pip_tol=0.0015)
+    shortterm_SR = avg_sr_lines(shortterm_SR, rangeRatio)
      # delete short-term SR lines too close to long-term SR
     shortterm_SR = redundant_shortterm_sr(shortterm_SR, longterm_SR)
 
@@ -221,9 +231,11 @@ def new_datetime_complete(df_longterm, df_window, new_point, pip_closeness_tol=0
     longterm_trend, lt_lower, lt_upper = trend_lines(df_longterm.Close, t=25, preserve_datetime=True)
 
     # Calculate S+R lines with same slope as trend's control, determined by trend rejection candles
-    sloped_sr_lines, sloped_sr_lines_starts = sloped_SRlines(df_window, shortterm_trend)
+    sloped_sr_lines, sloped_sr_lines_starts = sloped_SRlines(df_window, shortterm_trend, rangeRatio)
 
 ### Value area features
+    pip_closeness_tol = 0.0008 * rangeRatio
+
     # Find whether close price is near control
     df_window.iloc[-1, 10] = 1 if abs(df_window.Close.iloc[-1]-shortterm_trend.iloc[-1]) <= pip_closeness_tol else 0
     

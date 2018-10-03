@@ -34,7 +34,7 @@ def plot_ticks(df_window):
 
 
 
-df = pd.read_csv(r'/home/michael/repos/the-forex-ai/datasets/dukascopy - EURUSD_Candlestick_4_Hour_BID_31.12.2015-30.12.2016.csv', parse_dates=[0], index_col=0, date_parser=lambda d: pd.datetime.strptime(d[:13], '%d.%m.%Y %H'))
+df = pd.read_csv(r'/home/mt/repos/the-forex-ai/Reference/dukascopy - EURUSD_Candlestick_4_Hour_BID_31.12.2015-30.12.2016.csv', parse_dates=[0], index_col=0, date_parser=lambda d: pd.datetime.strptime(d[:13], '%d.%m.%Y %H'))
 
 iteration = 0
 cats = []

@@ -18,7 +18,7 @@ from keras.layers.advanced_activations import LeakyReLU
 from sklearn.model_selection import train_test_split
 
 def main():
-    df = pd.read_csv(r'/home/michael/repos/the-forex-ai/datasets/dukascopy - EURUSD_Candlestick_4_Hour_BID_31.12.2015-30.12.2016.csv',
+    df = pd.read_csv(r'/home/mt/repos/the-forex-ai/Reference/dukascopy - EURUSD_Candlestick_4_Hour_BID_31.12.2015-30.12.2016.csv',
                      parse_dates=[0], index_col=0, date_parser=lambda d: pd.datetime.strptime(d[:13], '%d.%m.%Y %H'))
 
     df_window = df.iloc[40:, :]
@@ -29,10 +29,10 @@ def main():
     ind = [d in y.index for d in df_window.index]
     df_window = df_window.loc[ind]
 
-    # #gen_img_files(df_window) # comment out if images files are already in ./candles
-    # X_train, y_train = conv_img_files_to_array(y)
-    # model = let_us_have_a_CNN(X_train, y_train)
-    # model.save(r'An eye for an eye - a CNN model.h5')  # creates an HDF5 file 'my_model.h5' # Save dat model
+    gen_img_files(df_window) # comment out if images files are already in ./candles
+    X_train, y_train = conv_img_files_to_array(y)
+    model = let_us_have_a_CNN(X_train, y_train)
+    model.save(r'An eye for an eye - a CNN model.h5')  # creates an HDF5 file 'my_model.h5' # Save dat model
 
     from keras.models import load_model
     model = load_model('An eye for an eye - a CNN model.h5')

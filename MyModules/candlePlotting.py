@@ -9,7 +9,7 @@ from IPython.display import clear_output
 # modify parameters as needed
 
 cat_map = {0: "No category", 1: "Hammer (body near high)", 2: "Inverted hammer (body near low)", 3: "Spinning top", 4: "Doji with close near high", 5: "Doji with close near low", 6: "Doji with close near middle", 7: "Marubozu", 8: "Hanging man", 9: "Shooting star"}
-params = {0: {'color': 'c', 'linewidth': 2.35, 'alpha': 1}, 1: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 2: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 3: {'color': 'green', 'linewidth': 2.35, 'alpha': 1}, 4: {'color': 'green', 'linewidth': 2, 'alpha': 0.55}, 5: {'color': 'green', 'linewidth': 2, 'alpha': 0.55}}
+params = {0: {'color': 'c', 'linewidth': 2.35, 'alpha': 1}, 1: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 2: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 3: {'color': 'green', 'linewidth': 2.35, 'alpha': 1}, 4: {'color': 'green', 'linewidth': 2, 'alpha': 0.4}, 5: {'color': 'green', 'linewidth': 2, 'alpha': 0.4}}
 
 def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, lt_upper, shortterm_trend, st_lower, st_upper, sloped_sr_lines, sloped_sr_lines_starts, last_date, len_of_future_bars, instr, period):
     clear_output()
@@ -78,8 +78,9 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
     plt.setp(plt.gca().get_xticklabels(minor=True), horizontalalignment='right', rotation=80)
     plt.setp(plt.gca().get_xticklabels(), horizontalalignment='right', rotation=80)
     ax.tick_params(axis='x', labelsize=10)
+
 # Save plot as jpg
-    filename = './Analyses/{}/{} {}'.format(instr, instr, period)
+    filename = './Analyses/{}/{} - {} {}'.format(instr, ('M', 'W', 'D', 'H4').index(period) + 1, instr, period)
     plt.savefig(filename + '.jpg', bbox_inches='tight')
     plt.cla() 
     plt.clf() 

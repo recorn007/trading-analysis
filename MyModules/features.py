@@ -44,7 +44,7 @@ def immediate_trend(to_plot):
     return np.sign(immediate_trend[-1]-immediate_trend[0])
 
 def same_sized_candle_trend_rejection(candles, trend, ratio):
-    size_tol = 1.25 * ratio
+    size_tol = 1 if 1.25 * ratio < 1 else 1.25 * ratio
     if candles.Close.iloc[0] - candles.Open.iloc[0] != 0 and candles.Close.iloc[1] - candles.Open.iloc[1] != 0:
         if (1/size_tol) <= (abs(candles.Close.iloc[0] - candles.Open.iloc[0]) / abs(candles.Close.iloc[1] - candles.Open.iloc[1])) <= size_tol and \
            np.sign(candles.Close.iloc[0] - candles.Open.iloc[0]) * np.sign(candles.Close.iloc[1] - candles.Open.iloc[1]) == -1 and \
@@ -156,7 +156,8 @@ def sloped_SRlines(df_window, shortterm_trend, ratio):
     return sloped_sr_lines, sloped_sr_lines_starts
 
 def get_sloped_SRlines(df_window_index, rejections, slope, ratio):
-    tol = 0.00175 * ratio
+    #tol = 0.00175 * ratio
+    tol = 0.0017 * ratio
     sloped_lines = [[]]
     sloped_lines_starts = []
     for i, R in enumerate(rejections.index):

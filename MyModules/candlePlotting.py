@@ -21,7 +21,7 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
     ax.autoscale_view()
     ax.set_facecolor('#161616')
 # Highlight last closed candle
-    ax.add_patch(Rectangle((len(df_window)-len_of_future_bars-0.5, 0), 1.2, 10, facecolor='purple', alpha=0.32))
+    ax.add_patch(Rectangle((len(df_window)-len_of_future_bars-0.5, 0), 1.2, max(df_window.High), facecolor='purple', alpha=0.32))
 # Plot the SR lines
     for line in (lt for lt in longterm_SR if lt >= min(df_window.Low) and lt <= max(df_window.High)):
         plt.axhline(y=line, color='firebrick', linewidth=1.5)

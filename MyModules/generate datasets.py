@@ -1,5 +1,11 @@
+import os
+if os.path.dirname(os.path.realpath(__file__))[-13:] != 'the-forex-ai':
+   print('This script can only be ran at the root folder of the-forex-ai. Please drop this file there first and then run.')
+   exit()
+
+
 import pandas as pd, numpy as np, datetime as dt
-import http, json
+import http, json, os
 from MyModules.features import new_datetime_alpha
 
 def main():
@@ -49,7 +55,7 @@ def gen_csv(c, t):
         _, df = new_datetime_alpha(df, df, df_get_alpha.iloc[i])
 
     df = df.drop([str(n) for n in range(4, 9)], axis=1)
-    df.to_csv(r'Datasets/{} {}.csv'.format(c, t))
+    df.to_csv(r'./Datasets/{} {}.csv'.format(c, t))
 
     return
 

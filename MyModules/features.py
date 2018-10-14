@@ -49,7 +49,10 @@ def same_sized_candle_trend_rejection(candles, trend, ratio):
         if (1/size_tol) <= (abs(candles.Close.iloc[0] - candles.Open.iloc[0]) / abs(candles.Close.iloc[1] - candles.Open.iloc[1])) <= size_tol and \
            np.sign(candles.Close.iloc[0] - candles.Open.iloc[0]) * np.sign(candles.Close.iloc[1] - candles.Open.iloc[1]) == -1 and \
            trend * np.sign(candles.Close.iloc[1] - candles.Open.iloc[1]) == -1:
-            return 1
+            if trend == 1 and abs(candles.High.iloc[0] - candles.High.iloc[1]) <= 0.001 * ratio:
+                return 1
+            elif trend == -1 and abs(candles.Low.iloc[0] - candles.Low.iloc[1]) <= 0.001 * ratio:
+                return 1
     return 0
     
 def engulfing_check(candles):

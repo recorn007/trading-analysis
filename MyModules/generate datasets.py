@@ -1,5 +1,5 @@
 import os
-if os.path.dirname(os.path.realpath(__file__))[-13:] != 'the-forex-ai':
+if os.path.dirname(os.path.realpath(__file__))[-12:] != 'the-forex-ai':
    print('This script can only be ran at the root folder of the-forex-ai. Please drop this file there first and then run.')
    exit()
 
@@ -11,6 +11,8 @@ from MyModules.features import new_datetime_alpha
 def main():
     currensy = ('EUR_USD', 'EUR_JPY', 'EUR_CAD', 'EUR_AUD', 'AUD_USD', 'USD_CAD', 'USD_JPY')
     timePeriods = ('M', 'W', 'D', 'H4')
+
+    check_dir(currensy)
 
     for cur in currensy:
         for time in timePeriods:
@@ -58,6 +60,14 @@ def gen_csv(c, t):
     df.to_csv(r'./Datasets/{} {}.csv'.format(c, t))
 
     return
+
+def check_dir(currensy):
+    if not os.path.exists(r'./Datasets'): os.mkdir(r'./Datasets')
+    if not os.path.exists(r'./Analyses'): os.mkdir(r'./Analyses')
+
+    for cur in currensy:
+        if not os.path.exists(r'./Analyses/{}'.format(cur)):
+            os.mkdir(r'./Analyses/{}'.format(cur))
 
 if __name__ == '__main__':
     main()

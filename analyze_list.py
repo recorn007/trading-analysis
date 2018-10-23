@@ -7,7 +7,7 @@ def main():
     for cur in currensy:
         for time in timePeriods:
             print(cur, time)
-            get_analyzed_plot(cur, time, len_longterm=550, len_window=120)
+            get_analyzed_plot(cur, time, len_longterm=550, len_window=120, txtOutput=False)
 
     # auto-open output text files in Sublime Text? Maybe dependent on specifically desired currencies/timeframes to analyze
 

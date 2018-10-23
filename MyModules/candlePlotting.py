@@ -11,7 +11,7 @@ from IPython.display import clear_output
 cat_map = {0: "No category", 1: "Hammer (body near high)", 2: "Inverted hammer (body near low)", 3: "Spinning top", 4: "Doji with close near high", 5: "Doji with close near low", 6: "Doji with close near middle", 7: "Marubozu", 8: "Hanging man", 9: "Shooting star"}
 params = {0: {'color': 'c', 'linewidth': 2.35, 'alpha': 1}, 1: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 2: {'color': 'c', 'linewidth': 2, 'alpha': 0.55}, 3: {'color': 'green', 'linewidth': 2.35, 'alpha': 1}, 4: {'color': 'green', 'linewidth': 2, 'alpha': 0.4}, 5: {'color': 'green', 'linewidth': 2, 'alpha': 0.4}}
 
-def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, lt_upper, shortterm_trend, st_lower, st_upper, sloped_sr_lines, sloped_sr_lines_starts, last_date, len_of_future_bars, instr, period):
+def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, lt_upper, shortterm_trend, st_lower, st_upper, sloped_sr_lines, sloped_sr_lines_starts, last_date, len_of_future_bars, instr, period, txtOutput=True):
     clear_output()
     plt.rcParams['figure.figsize'] = (16, 8)
     fig, ax = plt.subplots()
@@ -85,17 +85,19 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
     plt.cla() 
     plt.clf() 
     plt.close('all')
+
 # Save features as txt
-    with open(filename + '.txt', 'w') as txt:
-        print('   ' + str(df_window.index[-len_of_future_bars])[:13] + 'h', file=txt)
-        txt.close()
-    with open(filename + '.txt', 'a') as txt:
-        if df_window.iloc[-len_of_future_bars, 5] != 0:
-            print(cat_map[df_window.iloc[-len_of_future_bars, 5]], file=txt)
-        for i in range(6, 34):
-            if i not in (9, 28) and df_window.iloc[-len_of_future_bars, i] != 0:
-                print(df_window.columns[i], end='', file=txt)
-                if i == 8: print(':', 'Upwards' if df_window.iloc[-len_of_future_bars, i] == 1 else 'Downwards', end='', file=txt)
-                if i in (16, 17, 18, 19, 20, 21, 25, 26, 31, 32, 33): print(' (from BELOW)' if df_window.iloc[-len_of_future_bars, i] == 1 else '(from ABOVE)', file=txt)
-                else: print('', file=txt)
-        txt.close()
+    if txtOutput:
+        with open(filename + '.txt', 'w') as txt:
+            print('   ' + str(df_window.index[-len_of_future_bars])[:13] + 'h', file=txt)
+            txt.close()
+        with open(filename + '.txt', 'a') as txt:
+            if df_window.iloc[-len_of_future_bars, 5] != 0:
+                print(cat_map[df_window.iloc[-len_of_future_bars, 5]], file=txt)
+            for i in range(6, 34):
+                if i not in (9, 28) and df_window.iloc[-len_of_future_bars, i] != 0:
+                    print(df_window.columns[i], end='', file=txt)
+                    if i == 8: print(':', 'Upwards' if df_window.iloc[-len_of_future_bars, i] == 1 else 'Downwards', end='', file=txt)
+                    if i in (16, 17, 18, 19, 20, 21, 25, 26, 31, 32, 33): print(' (from BELOW)' if df_window.iloc[-len_of_future_bars, i] == 1 else '(from ABOVE)', file=txt)
+                    else: print('', file=txt)
+            txt.close()

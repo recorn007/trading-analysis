@@ -1,8 +1,7 @@
-import os
-if os.path.dirname(os.path.realpath(__file__))[-12:] != 'the-forex-ai':
-   print('This script can only be ran at the root folder of the-forex-ai. Please drop this file there first and then run.')
-   exit()
-
+# import os
+# if os.path.dirname(os.path.realpath(__file__))[-12:] != 'the-forex-ai':
+#    print('This script can only be ran at the root folder of the-forex-ai. Please drop this file there first and then run.')
+#    exit()
 
 import pandas as pd, numpy as np, datetime as dt
 import http, json, os
@@ -16,8 +15,11 @@ def main():
 
     for cur in currensy:
         for time in timePeriods:
+            print("Generating the {} {} dataset".format(cur, time))
             gen_csv(cur, time)
 
+    print('')
+    
     return
 
 def get_oanda_candles(instr, period):

@@ -9,7 +9,7 @@ def main():
       gen_datasets()
 
    currensy = ('EUR_USD', 'EUR_JPY', 'EUR_CAD', 'EUR_AUD', 'AUD_USD', 'USD_CAD', 'USD_JPY')
-   timePeriods = ('M', 'W', 'D', 'H4')
+   timePeriods = ('M', 'W', 'D', 'H4', 'H1')
 
    for cur in currensy:
       for time in timePeriods:

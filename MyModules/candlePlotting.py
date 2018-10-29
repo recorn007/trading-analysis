@@ -64,7 +64,7 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
         maj_date_labels = df_window.index.map(lambda d: str(d)[5:10] + '         ')
         min_date_ticks = [i for i, d in enumerate(df_window.index[:-(len_of_future_bars-3)]) if i not in maj_date_ticks and i%2 == 0]
         min_date_labels = df_window.index.map(lambda d: str(d)[5:10])
-    elif period == 'H4':
+    elif period == 'H4' or period == 'H1':
         maj_date_ticks = [i for i, d in enumerate(df_window.index[:-(len_of_future_bars-3)]) if str(d)[11:13]=='00' and i%2 == 0]
         maj_date_labels = df_window.index.map(lambda d: str(d)[5:10] + '     ')
         min_date_ticks = [i for i, d in enumerate(df_window.index[:-(len_of_future_bars-3)]) if (i not in maj_date_ticks and i%2 == 0) or d == last_date]
@@ -80,7 +80,7 @@ def plot_ticks(df_window, longterm_SR, shortterm_SR, longterm_trend, lt_lower, l
     ax.tick_params(axis='x', labelsize=10)
 
 # Save plot as jpg
-    filename = './Analyses/{}/{} - {} {}'.format(instr, ('M', 'W', 'D', 'H4').index(period) + 1, instr, period)
+    filename = './Analyses/{}/{} - {} {}'.format(instr, ('M', 'W', 'D', 'H4', 'H1').index(period) + 1, instr, period)
     plt.savefig(filename + '.jpg', bbox_inches='tight')
     plt.cla() 
     plt.clf() 

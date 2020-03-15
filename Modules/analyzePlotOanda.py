@@ -5,7 +5,7 @@ import http, json
 
 def get_oanda_candles(instr, period, start):
     conn = http.client.HTTPSConnection("api-fxpractice.oanda.com")
-    headers = {"Authorization": "Bearer ***REMOVED***"}
+    headers = {"Authorization": "Bearer {}"} # reference LastPass for bearer token
     url = "https://api-fxpractice.oanda.com/v3/instruments/{}/candles?&from={}&granularity={}&alignmentTimezone=America/Los_Angeles"\
             .format(instr, start, period)
     conn.request("GET", url, None, headers)

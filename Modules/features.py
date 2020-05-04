@@ -7,17 +7,18 @@ from sklearn.linear_model import LinearRegression
 from PIL import Image
 from keras.models import load_model
 
-CNNmodel = load_model('./MyModules/An eye for an eye - a CNN model.h5')
+#CNNmodel = load_model('./MyModules/An eye for an eye - a CNN model.h5')
 
 def git_candle_cat(to_plot, model_guess_tol=0.60):  # model_guess_tol: minimum required certainty for candle category; otherwise cat=0
+    CNNmodel = load_model('./MyModules/An eye for an eye - a CNN model.h5')
     plt.rcParams['figure.figsize'] = (0.4, 0.8)
     fig, ax = plt.subplots()
     finplt.candlestick2_ohlc(ax, to_plot.Open, to_plot.High, to_plot.Low, to_plot.Close,
                          width=0.6, colorup='g', colordown='r', alpha=1)
     plt.axis('off')
-    plt.savefig('./MyModules/temp_candle.jpg')
+    plt.savefig('./MyModules/CNN/temp_candle.jpg')
     plt.close()
-    category_i = Image.open('./MyModules/temp_candle.jpg').convert('L') # convert to grey-scale
+    category_i = Image.open('./MyModules/CNN/temp_candle.jpg').convert('L') # convert to grey-scale
     category_i = np.asarray(category_i.getdata(), dtype=np.float64).reshape((category_i.size[1], category_i.size[0]))
     category_i = np.asarray(category_i, dtype=np.uint8) #if values still in range 0-255! 
     category_i = np.array(Image.fromarray(category_i, mode='L')).astype('float32')

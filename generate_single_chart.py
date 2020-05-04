@@ -1,4 +1,4 @@
-from MyModules.analyzePlotOanda import get_analyzed_plot
+from Modules.analyzePlotOanda import get_analyzed_plot
 import sys
 
 def main():

@@ -1,6 +1,6 @@
 import pandas as pd, numpy as np
-from MyModules.features import new_datetime_complete
-from MyModules.candlePlotting import plot_ticks
+from Modules.features import new_datetime_complete
+from Modules.candlePlotting import plot_ticks
 
 def split_df(instr, period, len_longterm, len_window, normalize_to_pip=True):
     #df = get_df_deltas(instr, period)

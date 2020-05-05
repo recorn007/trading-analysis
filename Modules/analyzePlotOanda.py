@@ -1,6 +1,6 @@
 import pandas as pd, numpy as np, datetime as dt
-from MyModules.features import new_datetime_alpha, new_datetime_complete
-from MyModules.candlePlotting import plot_ticks
+from Modules.features import new_datetime_alpha, new_datetime_complete
+from Modules.candlePlotting import plot_ticks
 import http, json
 
 def get_oanda_candles(instr, period, start):

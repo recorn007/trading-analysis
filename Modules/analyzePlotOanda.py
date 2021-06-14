@@ -1,7 +1,12 @@
-import pandas as pd, numpy as np, datetime as dt
-from Modules.features import new_datetime_alpha, new_datetime_complete
+import pandas as pd
+import numpy as np
+import datetime as dt
+import http
+import json
+from Modules.features import new_datetime_alpha
+from Modules.features import new_datetime_complete
 from Modules.candlePlotting import plot_ticks
-import http, json
+
 
 def get_oanda_candles(instr, period, start):
     conn = http.client.HTTPSConnection("api-fxpractice.oanda.com")
@@ -15,11 +20,13 @@ def get_oanda_candles(instr, period, start):
     else:
         raise http.client.HTTPException("Error in HTTP request (status: " + str(resp.status) + "):\n" + str(resp.read()))
 
+
 def get_df_deltas(instr, period):
-## This function assumes that delta are from after the 2nd-to-last candle, since last hasn't closed yet
+    ## This function assumes that delta are from after the 2nd-to-last candle, since last hasn't closed yet
     df = pd.read_csv(r'Datasets/{} {}.csv'.format(instr, period), parse_dates=[0], index_col=0)
     #df = df[(df.Open != df.High) & (df.Open != df.Low) & (df.Open != df.Close)]  # this doesn't work as intended
-# Get delta candles from last date of df
+    
+    # Get delta candles from last date of df
     delta_candles = None
     while delta_candles is None:
         try:
@@ -35,8 +42,10 @@ def get_df_deltas(instr, period):
         delta_candles[c] = delta_candles['mid'].apply(lambda r: float(r['{}'.format(c[0].lower())]))
     delta_candles = delta_candles.drop('mid', axis=1)
 
-    if df.index[-1] == delta_candles.index[0]: df = df.drop(df.index[-1])  # Drop last point of df assuming it's the same date as the first delta candle
-# Get Rejection price of delta candles (except for current point)
+    # Drop last point of df assuming it's the same date as the first delta candle
+    if df.index[-1] == delta_candles.index[0]: df = df.drop(df.index[-1])
+    
+    # Get Rejection price of delta candles (except for current point)
     if len(delta_candles) > 1:
         for n in range(4, 9): df[str(n)] = np.nan
         df = df[['Open', 'High', 'Low', 'Close', '4', '5', '6', '7', '8', 'Rejection']]
@@ -44,21 +53,28 @@ def get_df_deltas(instr, period):
             _, df = new_datetime_alpha(df, df, delta_candles.iloc[i])
         df = df.drop([str(n) for n in range(4, 9)], axis=1)
         df = df.append(delta_candles.iloc[-1])
+
     elif len(delta_candles) == 1:
         delta_candles['Rejection'] = np.nan
         df = df.append(delta_candles)
-    else: raise Exception('The number of delta candles from the local df is 0??')
+
+    else:
+        raise Exception('The number of delta candles from the local df is 0??')
     
     return df
+
 
 def split_df(instr, period, len_longterm, len_window):
     df = get_df_deltas(instr, period)
 
     min_w_lt = max(0, len(df)-(len_longterm+1))
     min_w = max(0, len(df)-(len_window+1))
-    max_w = len(df)-2                          # execute new_datetime on penultimate candle for analysis
-                                               # to wait til close of the candle to make proper IPDE's
-    df['Rejection'].iloc[:min_w+1] = np.nan # remove Rejection price on points leading up to df_window
+    
+    # execute new_datetime on penultimate candle for analysis to wait til close of the candle to make proper IPDE's
+    max_w = len(df)-2
+    
+    # remove Rejection price on points leading up to df_window
+    df['Rejection'].iloc[:min_w+1] = np.nan
     df_longterm = df.iloc[min_w_lt:max_w, :].copy()
     df_window = df.iloc[min_w:max_w, :].copy()
     df_lastclosed = df.iloc[max_w].copy()
@@ -66,12 +82,13 @@ def split_df(instr, period, len_longterm, len_window):
     
     df_window = df_window_cols(df_window)
 
-# Save df to local csv
+    # Save df to local csv
     while len(df) > len_longterm:
         df = df.iloc[1:]
     df.to_csv(r'Datasets/{} {}.csv'.format(instr, period))
 
     return df_longterm, df_window, df_lastclosed, df_last
+
 
 def df_window_cols(df_window):
     cols = ['Volume', 'Candle Pattern', 'Same-sized Candle Trend Rejection', 'Engulfing Pattern', 'Immediate Trend Direction', 'Rejection',
@@ -87,6 +104,7 @@ def df_window_cols(df_window):
     df_window = df_window[['Open', 'High', 'Low', 'Close'] + cols]
     
     return df_window
+
 
 def get_analyzed_plot(instr, period, len_longterm, len_window, txtOutput=True):
     df_longterm, df_window, df_lastclosed, df_last = split_df(instr, period, len_longterm, len_window)

@@ -3,17 +3,22 @@
 #    print('This script can only be ran at the root folder of the-forex-ai. Please drop this file there first and then run.')
 #    exit()
 
-import pandas as pd, numpy as np, datetime as dt
-import http, json, os
+import pandas as pd
+import numpy as np
+import datetime as dt
+import http
+import json
+import os
 from Modules.features import new_datetime_alpha
 
+
 def main():
-    currensy = ('EUR_USD', 'EUR_JPY', 'EUR_CAD', 'EUR_AUD', 'AUD_USD', 'USD_CAD', 'USD_JPY')
+    currency = ('EUR_USD', 'EUR_JPY', 'EUR_CAD', 'EUR_AUD', 'AUD_USD', 'USD_CAD', 'USD_JPY')
     timePeriods = ('M', 'W', 'D', 'H4', 'H1')
 
-    check_dir(currensy)
+    check_dir(currency)
 
-    for cur in currensy:
+    for cur in currency:
         for time in timePeriods:
             print("Generating the {} {} dataset".format(cur, time))
             gen_csv(cur, time)
@@ -21,6 +26,7 @@ def main():
     print('')
     
     return
+
 
 def get_oanda_candles(instr, period):
     conn = http.client.HTTPSConnection("api-fxpractice.oanda.com")
@@ -33,6 +39,7 @@ def get_oanda_candles(instr, period):
         return json.loads(resp.read())
     else:
         raise http.client.HTTPException("Error in HTTP request (status: " + str(resp.status) + "):\n" + str(resp.read()))
+
 
 def gen_csv(c, t):
     df = get_oanda_candles(c, t)
@@ -63,13 +70,15 @@ def gen_csv(c, t):
 
     return
 
-def check_dir(currensy):
+
+def check_dir(currency):
     if not os.path.exists(r'./Datasets'): os.mkdir(r'./Datasets')
     if not os.path.exists(r'./Analyses'): os.mkdir(r'./Analyses')
 
-    for cur in currensy:
+    for cur in currency:
         if not os.path.exists(r'./Analyses/{}'.format(cur)):
             os.mkdir(r'./Analyses/{}'.format(cur))
+
 
 if __name__ == '__main__':
     main()

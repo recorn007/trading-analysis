@@ -1,8 +1,11 @@
-from Modules.analyzePlotOanda import get_analyzed_plot
 import sys
+from Modules.analyzePlotOanda import get_analyzed_plot
+
 
 def main():
-   get_analyzed_plot(sys.argv[1], sys.argv[2], len_longterm=550, len_window=120)
+    get_analyzed_plot(sys.argv[1], sys.argv[2],
+                      len_longterm=550, len_window=120)
+
 
 if __name__ == '__main__':
-   main()
+    main()

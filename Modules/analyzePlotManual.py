@@ -1,6 +1,8 @@
-import pandas as pd, numpy as np
+import pandas as pd
+import numpy as np
 from Modules.features import new_datetime_complete
 from Modules.candlePlotting import plot_ticks
+
 
 def split_df(instr, period, len_longterm, len_window, normalize_to_pip=True):
     #df = get_df_deltas(instr, period)
@@ -13,9 +15,13 @@ def split_df(instr, period, len_longterm, len_window, normalize_to_pip=True):
 
     min_w_lt = max(0, len(df)-(len_longterm+1))
     min_w = max(0, len(df)-(len_window+1))
-    max_w = len(df)-2                          # execute new_datetime on penultimate candle for analysis
-                                               # to wait til close of the candle to make proper IPDE's
-    df['Rejection'].iloc[:min_w+1] = np.nan # remove Rejection price on points leading up to df_window
+    
+    # execute new_datetime on penultimate candle for analysis to wait til close of the candle to make proper IPDE's
+    max_w = len(df)-2
+    
+    # remove Rejection price on points leading up to df_window
+    df['Rejection'].iloc[:min_w+1] = np.nan
+
     df_longterm = df.iloc[min_w_lt:max_w, :].copy()
     df_window = df.iloc[min_w:max_w, :].copy()
     df_lastclosed = df.iloc[max_w].copy()
@@ -23,12 +29,13 @@ def split_df(instr, period, len_longterm, len_window, normalize_to_pip=True):
     
     df_window = df_window_cols(df_window)
 
-# Save df to local csv
+    # Save df to local csv
     #while len(df) > len_longterm:
     #    df = df.iloc[1:]
     #df.to_csv(r'Datasets/{} {}.csv'.format(instr, period))
 
     return df_longterm, df_window, df_lastclosed, df_last
+
 
 def df_window_cols(df_window):
     cols = ['Volume', 'Candle Pattern', 'Same-sized Candle Trend Rejection', 'Engulfing Pattern', 'Immediate Trend Direction', 'Rejection',
@@ -44,6 +51,7 @@ def df_window_cols(df_window):
     df_window = df_window[['Open', 'High', 'Low', 'Close'] + cols]
     
     return df_window
+
 
 def get_analyzed_plot(instr, period, len_longterm, len_window, txtOutput=True):
     df_longterm, df_window, df_lastclosed, df_last = split_df(instr, period, len_longterm, len_window)

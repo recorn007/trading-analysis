@@ -30,7 +30,7 @@ def main():
 
 def get_oanda_candles(instr, period):
     conn = http.client.HTTPSConnection("api-fxpractice.oanda.com")
-    headers = {"Authorization": "Bearer ***REMOVED***"}
+    headers = {"Authorization": "Bearer {}"} # obtain API token from Oanda demo account
     url = "https://api-fxpractice.oanda.com/v3/instruments/{}/candles?&count=550&granularity={}&alignmentTimezone=America/Los_Angeles"\
             .format(instr, period)
     conn.request("GET", url, None, headers)

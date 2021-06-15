@@ -10,7 +10,12 @@ from keras.models import load_model
 
 #CNNmodel = load_model('./Modules/An eye for an eye - a CNN model.h5')
 
-def git_candle_cat(to_plot, model_guess_tol=0.60):  # model_guess_tol: minimum required certainty for candle category; otherwise cat=0
+
+def git_candle_cat(to_plot, model_guess_tol=0.60):
+    '''
+    model_guess_tol: minimum required certainty for candle category; otherwise cat=0
+    '''
+    
     CNNmodel = load_model('./Modules/An eye for an eye - a CNN model.h5')
     plt.rcParams['figure.figsize'] = (0.4, 0.8)
     fig, ax = plt.subplots()
@@ -19,9 +24,11 @@ def git_candle_cat(to_plot, model_guess_tol=0.60):  # model_guess_tol: minimum r
     plt.axis('off')
     plt.savefig('./Modules/CNN/temp_candle.jpg')
     plt.close()
-    category_i = Image.open('./Modules/CNN/temp_candle.jpg').convert('L') # convert to grey-scale
+    
+    # Convert to grey-scale
+    category_i = Image.open('./Modules/CNN/temp_candle.jpg').convert('L')
     category_i = np.asarray(category_i.getdata(), dtype=np.float64).reshape((category_i.size[1], category_i.size[0]))
-    category_i = np.asarray(category_i, dtype=np.uint8) #if values still in range 0-255! 
+    category_i = np.asarray(category_i, dtype=np.uint8)  #if values still in range 0-255!
     category_i = np.array(Image.fromarray(category_i, mode='L')).astype('float32')
     category_i /= 255
     #category_i = category_i.reshape(1, 28, 57, 1)
@@ -30,8 +37,9 @@ def git_candle_cat(to_plot, model_guess_tol=0.60):  # model_guess_tol: minimum r
     
     if np.max(category_i) >= model_guess_tol:
         category_i = np.argmax(category_i)
-        if category_i in (1, 2):         # re-classify hammers as either Hanging Man or Shooting Star
-            if to_plot.iloc[0, 4] == 1:  # depending on immediate trend
+        # Re-classify hammers as either Hanging Man or Shooting Star depending on immediate trend
+        if category_i in (1, 2):
+            if to_plot.iloc[0, 4] == 1:
                 if category_i == 1:
                     category_i = 8
                 else:
@@ -101,7 +109,7 @@ def support_resistance(price, quant, bin_seed):
 def avg_sr_lines(sr_lines, ratio, longTerm=False):
     pip_tol = 0.0020 * ratio if longTerm else 0.0015 * ratio
     
-    # average out lines too close to each other
+    # Average out lines too close to each other
     sr_lines = np.sort(sr_lines)
     while True:
         sr_lines = np.sort(sr_lines)
@@ -184,7 +192,7 @@ def get_sloped_SRlines(df_window_index, rejections, slope, ratio):
             sloped_lines_starts = np.append(sloped_lines_starts, R)
     sloped_lines = np.array(sloped_lines[1:])
     
-    # delete sloped SR lines too close to each other within a tolerance
+    # Delete sloped SR lines too close to each other within a tolerance
     for i in range(len(sloped_lines)):
         if sloped_lines[i] != []:
             for j in range(len(sloped_lines)-1, 0, -1):
@@ -205,7 +213,8 @@ def fibo_levels(max_price, min_price):
 
 
 def new_datetime_alpha(df_longterm, df_window, new_point, to_complete=False):
-    df_window = df_window.append(new_point)         # When defining df_window, included all points up max_w. Here, max_w is now included
+    # When defining df_window, included all points up max_w. Here, max_w is now included
+    df_window = df_window.append(new_point)
     df_longterm = df_longterm.append(new_point)
     
     ### Get range ratio of the df_window candles. The range is compared to the golden standard of the Daily EUR_USD chart, particularly captured on Sep 30, 2018
@@ -214,13 +223,17 @@ def new_datetime_alpha(df_longterm, df_window, new_point, to_complete=False):
     rangeRatio = (maxi - mini) / 0.06111
     
     ### Feature Engineerings
-    df_window.iloc[-1, 8] = immediate_trend(df_window.Close.iloc[-11:-1])                                        # Immediate trend
-    df_window.iloc[-1, 5] = git_candle_cat(df_window.iloc[len(df_window)-1:len(df_window), [0, 1, 2, 3, 8]])     # Candle Pattern. Pass OHLC + Immediate Trend columns
+    # Immediate trend
+    df_window.iloc[-1, 8] = immediate_trend(df_window.Close.iloc[-11:-1])
+    # Candle Pattern. Pass OHLC + Immediate Trend columns
+    df_window.iloc[-1, 5] = git_candle_cat(df_window.iloc[len(df_window)-1:len(df_window), [0, 1, 2, 3, 8]])
     
     # Same sized candle trend rejection
     df_window.iloc[-1, 6] = same_sized_candle_trend_rejection(df_window.iloc[len(df_window)-2:len(df_window), :4], df_window.iloc[-1, 8], rangeRatio)
-    df_window.iloc[-1, 7] = engulfing_check(df_window.iloc[len(df_window)-2:len(df_window), 1:3])                # Engulfing pattern
-    df_window.iloc[-1, 9] = rejection_price(df_window.iloc[-1, :7])                                              # Rejection
+    # Engulfing pattern
+    df_window.iloc[-1, 7] = engulfing_check(df_window.iloc[len(df_window)-2:len(df_window), 1:3])
+    # Rejection
+    df_window.iloc[-1, 9] = rejection_price(df_window.iloc[-1, :7])
 
     if to_complete:
         return df_longterm, df_window, rangeRatio
@@ -248,7 +261,7 @@ def new_datetime_complete(df_longterm, df_window, new_point, keep_df_size=False)
     shortterm_SR = support_resistance(df_window.iloc[:, :4], quant=0.12, bin_seed=True)
     shortterm_SR = avg_sr_lines(shortterm_SR, rangeRatio)
      
-     # delete short-term SR lines too close to long-term SR
+    # Delete short-term SR lines too close to long-term SR
     shortterm_SR = redundant_shortterm_sr(shortterm_SR, longterm_SR)
 
     # Calculate trend lines
@@ -264,7 +277,7 @@ def new_datetime_complete(df_longterm, df_window, new_point, keep_df_size=False)
     # Find whether close price is near control
     df_window.iloc[-1, 10] = 1 if abs(df_window.Close.iloc[-1]-shortterm_trend.iloc[-1]) <= pip_closeness_tol else 0
     
-    # try while still getting reindex issue
+    # Try while still getting reindex issue
     try:
         df_window.iloc[-1, 11] = 1 if abs(df_window.Close.iloc[-1]-longterm_trend.reindex(df_window.index, axis=0).iloc[-1]) <= pip_closeness_tol else 0
     except:
@@ -314,63 +327,72 @@ def new_datetime_complete(df_longterm, df_window, new_point, keep_df_size=False)
     # Find whether price rejected short-term limit.
     # Positive immediate trend: high above upper limit, close below upper limit, close fairly far from limit
     # Negative immediate trend: low above lower limit, close above lower limit, close fairly far from limit
+
+    # Rejected short-term upper limit from below
     if df_window.iloc[-1, 8] == 1 and \
             df_window.High.iloc[-1] >= st_upper.iloc[-1] - 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] < st_upper.iloc[-1] and \
             abs(df_window.Close.iloc[-1] - st_upper.iloc[-1]) > pip_closeness_tol:
-        df_window.iloc[-1, 18] = 1  # rejected short-term upper limit from below
+        df_window.iloc[-1, 18] = 1
     
+    # Rejected short-term upper limit from above
     elif df_window.iloc[-1, 8] == -1 and \
             df_window.High.iloc[-1] <= st_upper.iloc[-1] + 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] > st_upper.iloc[-1] and \
             abs(df_window.Close.iloc[-1] - st_upper.iloc[-1]) > pip_closeness_tol:
-        df_window.iloc[-1, 18] = 2  # rejected short-term upper limit from above
+        df_window.iloc[-1, 18] = 2
     
     else:
         df_window.iloc[-1, 18] = 0
     
+    # Rejected short-term lower limit from below
     if df_window.iloc[-1, 8] == 1 and \
             df_window.Low.iloc[-1] >= st_lower.iloc[-1] - 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] < st_lower.iloc[-1] and \
             abs(df_window.Close.iloc[-1] - st_lower.iloc[-1]) > pip_closeness_tol:
-        df_window.iloc[-1, 19] = 1  # rejected short-term lower limit from below
+        df_window.iloc[-1, 19] = 1
     
+    # Rejected short-term lower limit from above
     elif df_window.iloc[-1, 8] == -1 and \
             df_window.Low.iloc[-1] <= st_lower.iloc[-1] + 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] > st_lower.iloc[-1] and \
             abs(df_window.Close.iloc[-1] - st_lower.iloc[-1]) > pip_closeness_tol:
-        df_window.iloc[-1, 19] = 2  # rejected short-term lower limit from above
+        df_window.iloc[-1, 19] = 2
     
     else:
         df_window.iloc[-1, 19] = 0
     
     # Find whether price rejected long-term limit
+    # Rejected long-term upper limit from below
     if df_window.iloc[-1, 8] == 1 and \
             df_window.High.iloc[-1] >= lt_upper.reindex(df_window.index, axis=0).iloc[-1] - 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] < lt_upper.reindex(df_window.index, axis=0).iloc[-1] and \
             abs(df_window.Close.iloc[-1] - lt_upper.reindex(df_window.index, axis=0).iloc[-1]) > pip_closeness_tol:
-        df_window.iloc[-1, 20] = 1  # rejected long-term upper limit from below
+        df_window.iloc[-1, 20] = 1
     
+    # Rejected long-term upper limit from above
     elif df_window.iloc[-1, 8] == -1 and \
             df_window.High.iloc[-1] <= lt_upper.reindex(df_window.index, axis=0).iloc[-1] + 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] > lt_upper.reindex(df_window.index, axis=0).iloc[-1] and \
             abs(df_window.Close.iloc[-1] - lt_upper.reindex(df_window.index, axis=0).iloc[-1]) > pip_closeness_tol:
-        df_window.iloc[-1, 20] = 2  # rejected long-term upper limit from above
+        df_window.iloc[-1, 20] = 2
     
     else:
         df_window.iloc[-1, 20] = 0
     
+    # Rejected long-term lower limit from below
     if df_window.iloc[-1, 8] == 1 and \
             df_window.Low.iloc[-1] >= lt_lower.reindex(df_window.index, axis=0).iloc[-1] - 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] < lt_lower.reindex(df_window.index, axis=0).iloc[-1] and \
             abs(df_window.Close.iloc[-1] - lt_lower.reindex(df_window.index, axis=0).iloc[-1]) > pip_closeness_tol:
-        df_window.iloc[-1, 21] = 1  # rejected long-term lower limit from below
+        df_window.iloc[-1, 21] = 1
 
+    # Rejected long-term lower limit from above
     elif df_window.iloc[-1, 8] == -1 and \
             df_window.Low.iloc[-1] <= lt_lower.reindex(df_window.index, axis=0).iloc[-1] + 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] > lt_lower.reindex(df_window.index, axis=0).iloc[-1] and \
             abs(df_window.Close.iloc[-1] - lt_lower.reindex(df_window.index, axis=0).iloc[-1]) > pip_closeness_tol:
-        df_window.iloc[-1, 21] = 2  # rejected long-term lower limit from above
+        df_window.iloc[-1, 21] = 2
     
     else:
         df_window.iloc[-1, 21] = 0
@@ -378,15 +400,19 @@ def new_datetime_complete(df_longterm, df_window, new_point, keep_df_size=False)
     df_window.iloc[-1, 22] = 0
     df_window.iloc[-1, 23] = 0
     df_window.iloc[-1, 24] = 0
-    for st in shortterm_SR:  # Check for closeness to any short-term SR lines
+    
+    # Check for closeness to any short-term SR lines
+    for st in shortterm_SR:
         if abs(st - df_window.Close.iloc[-1]) <= pip_closeness_tol/1.5:
             df_window.iloc[-1, 22] = 1
             break
-    for lt in (l for l in longterm_SR if l >= min(df_window.Low) and l <= max(df_window.High)):  # Check for closeness to any long-term SR lines
+    # Check for closeness to any long-term SR lines
+    for lt in (l for l in longterm_SR if l >= min(df_window.Low) and l <= max(df_window.High)):
         if abs(lt - df_window.Close.iloc[-1]) <= pip_closeness_tol:
             df_window.iloc[-1, 23] = 1
             break
-    for i in range(len(sloped_sr_lines)):  # Check for closeness to any sloped SR lines. Different code for new datetime points?
+    # Check for closeness to any sloped SR lines. Different code for new datetime points?
+    for i in range(len(sloped_sr_lines)):
         if sloped_sr_lines[i] != []:
             line = pd.Series(sloped_sr_lines[i], index=np.add(df_window.index.get_loc(sloped_sr_lines_starts[i]), range(len(sloped_sr_lines[i]))))
             if abs(line.iloc[-1] - df_window.Close.iloc[-1]) <= pip_closeness_tol:
@@ -440,8 +466,9 @@ def new_datetime_complete(df_longterm, df_window, new_point, keep_df_size=False)
                 df_window.iloc[-1, 27] += 1
 
     ### Long-term trend-following and counter-trend opportunities
+    # When slope of LTR is sideways, or under 8°
     if abs(np.rad2deg(np.arctan2(1000*(longterm_trend[-1] - longterm_trend[0]), len(longterm_trend)))) < 8:
-        df_window.iloc[-1, 28] = 0   # when slope of LTR is sideways, or under 8°
+        df_window.iloc[-1, 28] = 0
     else:
         df_window.iloc[-1, 28] = np.array(np.sign(longterm_trend[-1] - longterm_trend[0]))
 
@@ -468,47 +495,53 @@ def new_datetime_complete(df_longterm, df_window, new_point, keep_df_size=False)
     ### Fibo rejection checks
     fib_level1, fib_level2, fib_level3 = fibo_levels(df_window.Close.max(), df_window.Close.min())
     
+    # Rejected Fibo level 236 from below
     if df_window.iloc[-1, 8] == 1 and \
             df_window.High.iloc[-1] >= fib_level1 - 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] < fib_level1 and \
             abs(df_window.Close.iloc[-1] - fib_level1) > pip_closeness_tol:
-        df_window.iloc[-1, 31] = 1  # rejected Fibo level 236 from below
+        df_window.iloc[-1, 31] = 1
     
+    # Rejected Fibo level 236 from above
     elif df_window.iloc[-1, 8] == -1 and \
             df_window.High.iloc[-1] <= fib_level1 + 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] > fib_level1 and \
             abs(df_window.Close.iloc[-1] - fib_level1) > pip_closeness_tol:
-        df_window.iloc[-1, 31] = 2  # rejected Fibo level 236 from above
+        df_window.iloc[-1, 31] = 2
     
     else:
         df_window.iloc[-1, 31] = 0
 
+    # Rejected Fibo level 382 from below
     if df_window.iloc[-1, 8] == 1 and \
             df_window.High.iloc[-1] >= fib_level2 - 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] < fib_level2 and \
             abs(df_window.Close.iloc[-1] - fib_level2) > pip_closeness_tol:
-        df_window.iloc[-1, 32] = 1  # rejected Fibo level 382 from below
+        df_window.iloc[-1, 32] = 1
     
+    # Rejected Fibo level 382 from above
     elif df_window.iloc[-1, 8] == -1 and \
             df_window.High.iloc[-1] <= fib_level2 + 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] > fib_level2 and \
             abs(df_window.Close.iloc[-1] - fib_level2) > pip_closeness_tol:
-        df_window.iloc[-1, 32] = 2  # rejected Fibo level 382 from above
+        df_window.iloc[-1, 32] = 2
     
     else:
         df_window.iloc[-1, 32] = 0
 
+    # Rejected Fibo level 618 from below
     if df_window.iloc[-1, 8] == 1 and \
             df_window.High.iloc[-1] >= fib_level3 - 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] < fib_level3 and \
             abs(df_window.Close.iloc[-1] - fib_level3) > pip_closeness_tol:
-        df_window.iloc[-1, 33] = 1  # rejected Fibo level 618 from below
+        df_window.iloc[-1, 33] = 1
     
+    # Rejected Fibo level 618 from above
     elif df_window.iloc[-1, 8] == -1 and \
             df_window.High.iloc[-1] <= fib_level3 + 2*pip_closeness_tol and \
             df_window.Close.iloc[-1] > fib_level3 and \
             abs(df_window.Close.iloc[-1] - fib_level3) > pip_closeness_tol:
-        df_window.iloc[-1, 33] = 2  # rejected Fibo level 618 from above
+        df_window.iloc[-1, 33] = 2
     
     else:
         df_window.iloc[-1, 33] = 0
